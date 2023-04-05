@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unique Entries</title>
+</head>
+<body>
+    <h1>Unique Entries</h1>
+    <h2>Unique Dates</h2>
+    <ul>
+        {% for date in unique_dates %}
+            <li>{{ date }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Unique Antibiotic Types</h2>
+    <ul>
+        {% for antibiotic_type in unique_antibiotic_types %}
+            <li>{{ antibiotic_type }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Unique Concentrations</h2>
+    <ul>
+        {% for concentration in unique_concentrations %}
+            <li>{{ concentration }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
