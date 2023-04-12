@@ -13,7 +13,7 @@
             <li><p>{{d.date}}</p></li>
             <ul>
                 {% for c in d.concentrations %}
-                <li>{{c}} {{d.unit}} --- <a href="/ab/{{d.antibiotic_type}}/{{d.date}}/{{c}}/0 ">droplets</a> | <a href="/ab/{{d.antibiotic_type}}/{{d.date}}/{{c}}/chip ">chip</a></li>
+                <li>{{c.value}} {{c.unit}} --- <a href="/droplet/{{c.chip_id}}/0 ">droplets</a> | <a href="/chip/{{c.chip_id}} ">chip</a></li>
                 {% endfor %}
             </ul>
         {% endfor %}

@@ -15,7 +15,7 @@ CREATE TABLE datasets (
 CREATE TABLE chips (
   id CHAR(32) PRIMARY KEY ,
   dataset_id CHAR(32) NOT NULL,
-  chip_id INT NOT NULL,
+  stack_index INT NOT NULL,
   concentration FLOAT NOT NULL,
   FOREIGN KEY (dataset_id) REFERENCES datasets(id)
 );

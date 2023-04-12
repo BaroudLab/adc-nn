@@ -5,12 +5,14 @@
 </head>
 <body>
     <p><a href="{{data[1].back_url}}">back</a> </p>
+    <h3>{{data[1].ab_type}}: {{data[1].ab_conc}} {{data[1].ab_unit}} (#{{data[-1].stack_index}})</h3>
+    <p>{{data[1].path}}</p>
     <ul>
         {% for d in data %}
             <li><img id="my-image" src="data:image/jpeg;base64,{{d.data}}" alt={{d.name}}></li>
         {% endfor %}
     </ul>
-    <p><a href="{{data[1].url_prev}}">prev</a> | <a href="{{data[1].url_next}}">next</a></p>
+    <p><a href="{{data[1].prev_chip}}">prev</a> | <a href="{{data[1].next_chip}}">next</a></p>
     
 </body>
 </html>
