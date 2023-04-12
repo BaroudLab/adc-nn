@@ -22,10 +22,10 @@ def readdb(query, unique=True):
     return values
 
 @app.route('/')
-def index():
+def droplet_id():
     unique_antibiotic_types = readdb('SELECT DISTINCT antibiotic_type FROM datasets;')
 
-    return render_template('index.html', 
+    return render_template('droplet_id.html', 
                            unique_antibiotic_types=unique_antibiotic_types,
                            )
 
@@ -73,8 +73,8 @@ def get_data(antibiotic_type):
     } for d in dates]
     return render_template("data.html", data=concentrations)
 
-@app.route("/ab/<ab>/<date>/<concentration>/<index>")
-def get_images(ab, date, concentration, index):
+@app.route("/ab/<ab>/<date>/<concentration>/<droplet_id>")
+def get_images(ab, date, concentration, droplet_id):
     path, chip_id = readdb(
             f"""SELECT  datasets.path, chips.chip_id
             FROM datasets 
@@ -93,7 +93,7 @@ def get_images(ab, date, concentration, index):
     data = da.from_zarr(abs_path)
     logger.debug(f"retrieved data: {data}")
 
-    bf, fluo = data[int(index),int(chip_id)].compute()
+    bf, fluo = data[int(droplet_id),int(chip_id)].compute()
     logger.debug(f'bf {bf.shape} fluo {fluo.shape}')
 
     return render_template(
@@ -103,8 +103,8 @@ def get_images(ab, date, concentration, index):
              "data": encode_base64(fluo, min=(mi:=400), max=(ma:=600)), 
              "min":mi, 
              "max":ma, 
-             "url_next": f"/ab/{ab}/{date}/{concentration}/{int(index)+1}",
-             "url_prev": f"/ab/{ab}/{date}/{concentration}/{int(index)-1}",
+             "url_next": f"/ab/{ab}/{date}/{concentration}/{int(droplet_id)+1}",
+             "url_prev": f"/ab/{ab}/{date}/{concentration}/{int(droplet_id)-1}",
              "back_url": f"/ab/{ab}"}
         ]
     )
