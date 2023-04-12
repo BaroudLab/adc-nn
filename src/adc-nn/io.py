@@ -9,6 +9,7 @@ def encode_base64(image, min=None, max=None):
     imax = image.max() if max is None else max
     norm01 = (image - imin) / (imax-imin)
     norm01[norm01 > 1] = 1
+    norm01[norm01 < 0] = 0
     image_8bit = (norm01 * 255).astype(np.uint8)
 
     image_pil = Image.fromarray(image_8bit, mode='L').convert('RGB')

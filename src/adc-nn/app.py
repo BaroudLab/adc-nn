@@ -63,12 +63,18 @@ def get_data(antibiotic_type):
             datasets.antibiotic_type='{antibiotic_type}' AND
             datasets.date='{d}'
             ORDER BY chips.concentration;"""),
+        "unit": readdb(
+            f"""SELECT  datasets.unit
+            FROM datasets 
+            WHERE 
+            datasets.antibiotic_type='{antibiotic_type}' AND
+            datasets.date='{d}';""")[0],
         
     } for d in dates]
-    return concentrations
+    return render_template("data.html", data=concentrations)
 
 @app.route("/ab/<ab>/<date>/<concentration>/<index>")
-def get_images(ab,date, concentration, index):
+def get_images(ab, date, concentration, index):
     path, chip_id = readdb(
             f"""SELECT  datasets.path, chips.chip_id
             FROM datasets 
@@ -93,7 +99,48 @@ def get_images(ab,date, concentration, index):
     return render_template(
         "image.html", 
         data=[{"name": "bf", "data": encode_base64(bf)}, 
-            {"name": "fluo", "data": encode_base64(fluo, min=400, max=600)}
+            {"name": "fluo", 
+             "data": encode_base64(fluo, min=(mi:=400), max=(ma:=600)), 
+             "min":mi, 
+             "max":ma, 
+             "url_next": f"/ab/{ab}/{date}/{concentration}/{int(index)+1}",
+             "url_prev": f"/ab/{ab}/{date}/{concentration}/{int(index)-1}",
+             "back_url": f"/ab/{ab}"}
+        ]
+    )
+
+@app.route("/ab/<ab>/<date>/<concentration>/chip")
+def get_chip(ab, date, concentration):
+    path, chip_id = readdb(
+            f"""SELECT  datasets.path, chips.chip_id
+            FROM datasets 
+            JOIN chips 
+            ON chips.dataset_id = datasets.id
+            WHERE 
+            datasets.antibiotic_type='{ab}' AND
+            datasets.date='{date}' AND
+            chips.concentration={concentration}
+            ;""", unique=False)[0]
+    chip_path = path.replace(".crops.zarr", ".zarr")
+    logger.debug(f"retrieved path: {chip_path}, chip_id: {chip_id}")
+
+    abs_path = os.path.join(DATA_PREFIX, chip_path)
+    logger.debug(f"abs_path {abs_path}")
+
+    data = da.from_zarr(os.path.join(abs_path, "3"))
+    print(f"retrieved data: {data}")
+
+    bf, fluo = data[int(chip_id),:2, ::2, ::2].compute()
+    logger.debug(f'bf {bf.shape} fluo {fluo.shape}')
+
+    return render_template(
+        "chip.html", 
+        data=[{"name": "bf", "data": encode_base64(bf)}, 
+            {"name": "fluo", 
+             "data": encode_base64(fluo, min=(mi:=400), max=(ma:=600)), 
+             "min":mi, 
+             "max":ma, 
+             "back_url": f"/ab/{ab}"}
         ]
     )
 

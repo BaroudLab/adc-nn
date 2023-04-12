@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>data page</title>
+</head>
+<body>
+    <p><a href="/">Home</a> </p>
+    <h3>
+        {{data[0].antibiotic_type}}
+    </h3>
+    <ul>
+        {% for d in data %}
+            <li><p>{{d.date}}</p></li>
+            <ul>
+                {% for c in d.concentrations %}
+                <li>{{c}} {{d.unit}} --- <a href="/ab/{{d.antibiotic_type}}/{{d.date}}/{{c}}/0 ">droplets</a> | <a href="/ab/{{d.antibiotic_type}}/{{d.date}}/{{c}}/chip ">chip</a></li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    </ul>
+    
+</body>
+</html>
