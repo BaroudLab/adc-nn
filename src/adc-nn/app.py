@@ -93,7 +93,7 @@ def get_images(ab,date, concentration, index):
     return render_template(
         "image.html", 
         data=[{"name": "bf", "data": encode_base64(bf)}, 
-            {"name": "fluo", "data": encode_base64(fluo, min=350, max=450)}
+            {"name": "fluo", "data": encode_base64(fluo, min=400, max=600)}
         ]
     )
 
