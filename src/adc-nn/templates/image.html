@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Base64 Image Example</title>
+</head>
+<body>
+    <ul>
+        {% for d in data %}
+            <li><img id="my-image" src="data:image/jpeg;base64,{{d.data}}" alt={{d.name}}></li>
+        {% endfor %}
+    </ul>
+    
+</body>
+</html>
