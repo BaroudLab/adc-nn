@@ -2,21 +2,21 @@
 SELECT name, email FROM users;
 SELECT name, user_id, date from features;
 SELECT DISTINCT date FROM datasets WHERE antibiotic_type='Tetracycline';
--- .tables
+.tables
 -- .schema
 
-SELECT  chips.concentration, datasets.path
+SELECT  chips.concentration, datasets.unit, datasets.path
 FROM datasets 
 JOIN chips 
 ON chips.dataset_id = datasets.id
 WHERE 
-datasets.antibiotic_type='Tetracycline' AND
-datasets.date='2023-04-04';
+datasets.antibiotic_type='Cirpofloxacin' AND
+datasets.date='2022-05-31';
 
 SELECT datasets.id,
 datasets.date,
 datasets.antibiotic_type,
-chips.chip_id,
+chips.stack_index,
 chips.concentration,
 datasets.unit,
 datasets.path
@@ -25,14 +25,7 @@ JOIN chips
 ON chips.dataset_id = datasets.id
 WHERE datasets.antibiotic_type='Tetracycline';
 
-SELECT datasets.id,
-datasets.date,
-datasets.antibiotic_type,
-chips.chip_id,
-chips.concentration,
-datasets.unit,
-datasets.path
-FROM datasets 
-JOIN chips 
-ON chips.dataset_id = datasets.id
-WHERE datasets.antibiotic_type=;
+
+SELECT id
+FROM chips
+WHERE dataset_id="454cf636c8964414b77962f1d3df2ab6";

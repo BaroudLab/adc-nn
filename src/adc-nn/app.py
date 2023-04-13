@@ -1,4 +1,5 @@
 from flask import Flask, render_template
+import numpy as np
 import sqlite3
 import os
 import logging
@@ -12,6 +13,7 @@ app = Flask(__name__)
 
 DATA_PREFIX = "/home/aaristov/Multicell/"
 
+
 def readdb(query, unique=True):
     with sqlite3.connect('database.db') as conn:
         cursor = conn.cursor()
@@ -20,6 +22,22 @@ def readdb(query, unique=True):
     if unique:
         return [v[0] for v in values]
     return values
+
+
+def get_centers(binning=2):
+    db_centers = readdb('SELECT id, y,x, binning, size FROM centers;', unique=False)
+    out = [{
+        "id": id,
+        "y": y * b / binning,
+        "x": x * b / binning,
+        "bin": binning,
+        "size": size * b / binning,
+        "color": "#ffffff60"
+    } for id, y, x, b, size in db_centers]
+    print(f"get centers with binning {binning}, raw data bin {db_centers[0][3]}")
+    return out
+
+
 
 @app.route('/')
 def droplet_id():
@@ -144,10 +162,12 @@ def get_chip(chip_id):
     abs_path = os.path.join(DATA_PREFIX, chip_path)
     logger.debug(f"abs_path {abs_path}")
 
-    data = da.from_zarr(os.path.join(abs_path, "3"))
+    binning = 8
+    data = da.from_zarr(os.path.join(abs_path, str(np.log2(binning).astype('int'))))
     print(f"retrieved data: {data}")
 
-    bf, fluo = data[int(stack_index), :2, ::2, ::2].compute()
+    subsampling = 2
+    bf, fluo = data[int(stack_index), :2, ::subsampling, ::subsampling].compute()
     logger.debug(f'bf {bf.shape} fluo {fluo.shape}')
 
     return render_template(
@@ -155,6 +175,7 @@ def get_chip(chip_id):
         data=[{"name": "bf", "data": encode_base64(bf)}, 
             {"name": "fluo", 
              "data": encode_base64(fluo, min=(mi:=400), max=(ma:=600)), 
+             "centers": get_centers(binning=binning * subsampling),
              "path": chip_path,
              "stack_index": stack_index,
              "ab_type": ab_type,

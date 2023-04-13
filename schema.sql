@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS  chips;
 DROP TABLE IF EXISTS  features;
 DROP TABLE IF EXISTS  droplets;
 DROP TABLE IF EXISTS  users;
+DROP TABLE IF EXISTS  centers;
 
 CREATE TABLE datasets (
   id CHAR(32) PRIMARY KEY ,
@@ -10,6 +11,14 @@ CREATE TABLE datasets (
   date DATE NOT NULL,
   antibiotic_type VARCHAR(50) NOT NULL,
   unit VARCHAR(5)
+);
+
+CREATE TABLE centers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  x float NOT NULL,
+  y float NOT NULL,
+  binning INT NOT NULL,
+  size REAL NOT NULL
 );
 
 CREATE TABLE chips (

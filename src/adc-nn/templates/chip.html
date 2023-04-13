@@ -7,11 +7,74 @@
     <p><a href="{{data[1].back_url}}">back</a> </p>
     <h3>{{data[1].ab_type}}: {{data[1].ab_conc}} {{data[1].ab_unit}} (#{{data[-1].stack_index}})</h3>
     <p>{{data[1].path}}</p>
-    <ul>
+    <p><a href="{{data[1].prev_chip}}">prev</a> | <a href="{{data[1].next_chip}}">next</a></p>
+    <canvas id="myCanvas"></canvas>
+
+    <script>
+
+      const jsdata = {{data | tojson}};
+      const canvas = document.getElementById("myCanvas");
+      const context = canvas.getContext("2d");
+      
+      const image = new Image();
+      image.src = "data:image/jpeg;base64,{{data[0].data}}";
+      
+      const circles = jsdata[1].centers;
+      console.log(circles[499])
+
+      image.onload = () => {
+        canvas.width = image.width;
+        canvas.height = image.height;
+        context.drawImage(image, 0, 0);
+        redraw();
+        
+        // Add click event listener to the canvas
+        canvas.addEventListener("click", (event) => {
+            const x = event.clientX - canvas.offsetLeft;
+            const y = event.clientY - canvas.offsetTop;
+            circles.forEach(circle => {
+                if (isPointInsideCircle(x, y, circle)) {
+                    circle.color = "blue";
+                    console.log(circle.id)
+                    redraw();
+                }
+            });
+        });
+      };
+      function drawCircle(circle) {
+        context.beginPath();
+        context.arc(circle.x, circle.y, circle.size / 2, 0, 2 * Math.PI);
+        context.strokeStyle = circle.color;
+        context.lineWidth = 2;
+        context.stroke();
+      }
+      
+      function isPointInsideCircle(x, y, circle) {
+        const distance = Math.sqrt((x - circle.x) ** 2 + (y - circle.y) ** 2);
+        return distance <= circle.size / 2;
+      }
+      
+      function redraw() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(image, 0, 0);
+        circles.forEach(circle => drawCircle(circle));
+      }
+      
+      // Add click event listener to the canvas
+      
+      
+      // Resize canvas when the window is resized
+      window.addEventListener("resize", () => {
+        canvas.width = image.width;
+        canvas.height = image.height;
+        redraw();
+      });
+    </script>
+    <!-- <ul>
         {% for d in data %}
             <li><img id="my-image" src="data:image/jpeg;base64,{{d.data}}" alt={{d.name}}></li>
         {% endfor %}
-    </ul>
+    </ul> -->
     <p><a href="{{data[1].prev_chip}}">prev</a> | <a href="{{data[1].next_chip}}">next</a></p>
     
 </body>
