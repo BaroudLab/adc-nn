@@ -1,10 +1,9 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import numpy as np
-import sqlite3
 import os
 import logging
 import dask.array as da
-from .io import encode_base64
+from .io import encode_base64, readdb, postdb, get_centers
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -12,30 +11,6 @@ logger.setLevel(logging.DEBUG)
 app = Flask(__name__)
 
 DATA_PREFIX = "/home/aaristov/Multicell/"
-
-
-def readdb(query, unique=True):
-    with sqlite3.connect('database.db') as conn:
-        cursor = conn.cursor()
-        cursor.execute(query)
-        values = cursor.fetchall()
-    if unique:
-        return [v[0] for v in values]
-    return values
-
-
-def get_centers(binning=2):
-    db_centers = readdb('SELECT id, y,x, binning, size FROM centers;', unique=False)
-    out = [{
-        "id": id,
-        "y": y * b / binning,
-        "x": x * b / binning,
-        "bin": binning,
-        "size": size * b / binning,
-        "color": "#ffffff60"
-    } for id, y, x, b, size in db_centers]
-    print(f"get centers with binning {binning}, raw data bin {db_centers[0][3]}")
-    return out
 
 
 
@@ -134,6 +109,20 @@ def get_chip(chip_id):
             WHERE 
             chips.id='{chip_id}'
             ;""", unique=False)[0]
+    
+    _features = readdb(
+        f"""SELECT
+        droplet_id,
+        feature_id
+        FROM droplets
+        WHERE
+        chip_id='{chip_id}'
+        ;""", unique=False)
+    if _features:
+        features = [{"id": i, "feature": f} for i, f in _features]
+    else:
+        features = []
+    
     try:
         next_chip = readdb(f"""SELECT  
             chips.id
@@ -177,6 +166,8 @@ def get_chip(chip_id):
              "data": encode_base64(fluo, min=(mi:=400), max=(ma:=600)), 
              "centers": get_centers(binning=binning * subsampling),
              "path": chip_path,
+             "chip_id": chip_id,
+             "features": features,
              "stack_index": stack_index,
              "ab_type": ab_type,
              "ab_conc": ab_conc,
@@ -189,9 +180,14 @@ def get_chip(chip_id):
         ]
     )
 
-@app.route("/img")
-def show_img():
-    return render_template("image.html")
+@app.route("/droplet/feature/save", methods=["POST"])
+def post():
+    if request.method == 'POST':
+        status, err = postdb("droplets", **request.json)
+        if status == "OK":
+            return "OK"
+        else:
+            return {"status": "err", "err": err}
 
 
 if __name__ == '__main__':

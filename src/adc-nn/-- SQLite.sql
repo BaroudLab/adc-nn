@@ -1,9 +1,11 @@
 -- SQLite
 SELECT name, email FROM users;
-SELECT name, user_id, date from features;
+SELECT id, name, user_id, date from features;
 SELECT DISTINCT date FROM datasets WHERE antibiotic_type='Tetracycline';
 .tables
 -- .schema
+
+SELECT * FROM droplets;
 
 SELECT  chips.concentration, datasets.unit, datasets.path
 FROM datasets 

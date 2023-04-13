@@ -40,9 +40,10 @@ CREATE TABLE features (
 CREATE TABLE droplets (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   chip_id INT NOT NULL,
-  feature_id INT,
-  value FLOAT,
-  user_id INT,
+  droplet_id INT NOT NULL,
+  feature_id INT NOT NULL,
+  value FLOAT NOT NULL,
+  user_id INT NOT NULL,
   date CURRENT_DATE,
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (chip_id) REFERENCES chips(id),

@@ -20,7 +20,10 @@
       image.src = "data:image/jpeg;base64,{{data[0].data}}";
       
       const circles = jsdata[1].centers;
-      console.log(circles[499])
+      const chip_id = jsdata[1].chip_id;
+      const features = jsdata[1].features;
+      console.log(features);
+      features.map(({feature, id}) => circles[id - 1].color="blue");
 
       image.onload = () => {
         canvas.width = image.width;
@@ -37,6 +40,7 @@
                     circle.color = "blue";
                     console.log(circle.id)
                     redraw();
+                    post(1,chip_id,circle.id,4, 1).then(console.log).catch(console.log)
                 }
             });
         });
@@ -69,6 +73,24 @@
         canvas.height = image.height;
         redraw();
       });
+
+      async function post(userId, chipId, dropletId, featureId, value){
+        rep = await fetch("/droplet/feature/save", {
+            method: "POST",
+            body: JSON.stringify({
+                user_id: userId,
+                chip_id: chipId,
+                droplet_id: dropletId,
+                feature_id: featureId,
+                value: value
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        });
+        return {rep};
+    }
+
     </script>
     <!-- <ul>
         {% for d in data %}
