@@ -7,6 +7,9 @@ SELECT DISTINCT date FROM datasets WHERE antibiotic_type='Tetracycline';
 
 SELECT * FROM droplets;
 
+SELECT * FROM features;
+
+
 SELECT  chips.concentration, datasets.unit, datasets.path
 FROM datasets 
 JOIN chips 

@@ -4,26 +4,37 @@
     <title>Base64 Image Example</title>
 </head>
 <body>
-    <p><a href="{{data[1].back_url}}">back</a> </p>
-    <h3>{{data[1].ab_type}}: {{data[1].ab_conc}} {{data[1].ab_unit}} (#{{data[-1].stack_index}})</h3>
-    <p>{{data[1].path}}</p>
-    <p><a href="{{data[1].prev_chip}}">prev</a> | <a href="{{data[1].next_chip}}">next</a></p>
+    <p><a href="{{data.meta.back_url}}">back</a> </p>
+    <h3>{{data.meta.ab_type}}: {{data.meta.ab_conc}} {{data.meta.ab_unit}} (#{{data.meta.stack_index}})</h3>
+    <p>{{data.meta.path}}</p>
+    <p><a href="{{data.meta.prev_chip}}">prev</a> | <a href="{{data.meta.next_chip}}">next</a></p>
     <canvas id="myCanvas"></canvas>
 
     <script>
-
+      // console.log({data});
+      const DEFAULT_CIRCLE_COLOR = "#ffffff60";
       const jsdata = {{data | tojson}};
+      console.log(jsdata);
+      const {imgData: img, meta} = jsdata;
+      console.log(img);
+      console.log(meta);
+
       const canvas = document.getElementById("myCanvas");
       const context = canvas.getContext("2d");
       
       const image = new Image();
-      image.src = "data:image/jpeg;base64,{{data[0].data}}";
+      image.src = `data:image/jpeg;base64,${img.value}`;
       
-      const circles = jsdata[1].centers;
-      const chip_id = jsdata[1].chip_id;
-      const features = jsdata[1].features;
+      const circles = meta.centers;
+      const chip_id = meta.chip_id;
+      const features = meta.features;
       console.log(features);
-      features.map(({feature, id}) => circles[id - 1].color="blue");
+
+      circles.map(circle => circle.color = DEFAULT_CIRCLE_COLOR)
+      features.map(({table_id, droplet_id, feature_id}) => {
+        circles[droplet_id - 1].color="blue";
+        circles[droplet_id - 1].table_id=table_id;
+      });
 
       image.onload = () => {
         canvas.width = image.width;
@@ -37,10 +48,17 @@
             const y = event.clientY - canvas.offsetTop;
             circles.forEach(circle => {
                 if (isPointInsideCircle(x, y, circle)) {
+                  if (circle.color != "blue") {
                     circle.color = "blue";
-                    console.log(circle.id)
+                    console.log(`Add ${circle.id}`);
                     redraw();
                     post(1,chip_id,circle.id,4, 1).then(console.log).catch(console.log)
+                  }else{
+                    circle.color = DEFAULT_CIRCLE_COLOR;
+                    console.log(`Remove ${circle.id}`);
+                    redraw();
+                    remove(chip_id,circle.id).then(console.log).catch(console.log)
+                  }
                 }
             });
         });
@@ -89,7 +107,20 @@
             }
         });
         return {rep};
-    }
+      }
+      async function remove(chip_id, circle_id){
+        rep = await fetch("/droplet/feature/remove", {
+            method: "POST",
+            body: JSON.stringify({
+              chip_id: chip_id,
+              droplet_id: circle_id
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        });
+        return {rep};
+      }
 
     </script>
     <!-- <ul>
@@ -97,7 +128,7 @@
             <li><img id="my-image" src="data:image/jpeg;base64,{{d.data}}" alt={{d.name}}></li>
         {% endfor %}
     </ul> -->
-    <p><a href="{{data[1].prev_chip}}">prev</a> | <a href="{{data[1].next_chip}}">next</a></p>
+    <p><a href="{{data.meta.prev_chip}}">prev</a> | <a href="{{data.meta.next_chip}}">next</a></p>
     
 </body>
 </html>
