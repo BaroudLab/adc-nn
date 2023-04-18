@@ -7,12 +7,19 @@
     <p><a href="{{data.meta.back_url}}">back</a> </p>
     <h3>{{data.meta.ab_type}}: {{data.meta.ab_conc}} {{data.meta.ab_unit}} (#{{data.meta.stack_index}})</h3>
     <p>{{data.meta.path}}</p>
+    <div>
+      {% for feature in data.meta.all_features %}
+        <label><input type="radio" name="category" value={{feature.id}} >{{feature.name}}</label>
+      {% endfor %}
+    </div>
     <p><a href="{{data.meta.prev_chip}}">prev</a> | <a href="{{data.meta.next_chip}}">next</a></p>
     <canvas id="myCanvas"></canvas>
 
     <script>
       // console.log({data});
       const DEFAULT_CIRCLE_COLOR = "#ffffff60";
+      let cur_color="#000";
+      let cur_cat=-1;
       const jsdata = {{data | tojson}};
       console.log(jsdata);
       const {imgData: img, meta} = jsdata;
@@ -28,11 +35,12 @@
       const circles = meta.centers;
       const chip_id = meta.chip_id;
       const features = meta.features;
+      const colors = ["orange", "brown", " green", "blue", "red", "black"]
       console.log(features);
 
-      circles.map(circle => circle.color = DEFAULT_CIRCLE_COLOR)
+      circles.map(circle => circle.cat = -1 )
       features.map(({table_id, droplet_id, feature_id}) => {
-        circles[droplet_id - 1].color="blue";
+        circles[droplet_id - 1].cat=feature_id;
         circles[droplet_id - 1].table_id=table_id;
       });
 
@@ -46,27 +54,30 @@
         canvas.addEventListener("click", (event) => {
             const x = event.clientX - canvas.offsetLeft;
             const y = event.clientY - canvas.offsetTop;
-            circles.forEach(circle => {
-                if (isPointInsideCircle(x, y, circle)) {
-                  if (circle.color != "blue") {
-                    circle.color = "blue";
-                    console.log(`Add ${circle.id}`);
-                    redraw();
-                    post(1,chip_id,circle.id,4, 1).then(console.log).catch(console.log)
-                  }else{
-                    circle.color = DEFAULT_CIRCLE_COLOR;
-                    console.log(`Remove ${circle.id}`);
-                    redraw();
-                    remove(chip_id,circle.id).then(console.log).catch(console.log)
-                  }
-                }
-            });
+            if (cur_cat < 0) alert("select category first!");
+            else {
+              circles.forEach(circle => {
+                  if (isPointInsideCircle(x, y, circle)) {
+                    if (circle.cat < 0 ) {
+                      circle.cat = cur_cat;
+                      console.log(`Add ${circle.id} cat ${cur_cat}`);
+                      redraw();
+                      post(1,chip_id,circle.id, cur_cat, 1).then(console.log).catch(console.log)
+                    }else{
+                      circle.cat = -1;
+                      console.log(`Remove ${circle.id}`);
+                      redraw();
+                      remove(chip_id,circle.id).then(console.log).catch(console.log)
+                    }
+                  } 
+                });
+            }
         });
       };
       function drawCircle(circle) {
         context.beginPath();
         context.arc(circle.x, circle.y, circle.size / 2, 0, 2 * Math.PI);
-        context.strokeStyle = circle.color;
+        context.strokeStyle = circle.cat > 0 ? colors[circle.cat - 1] : DEFAULT_CIRCLE_COLOR;
         context.lineWidth = 2;
         context.stroke();
       }
@@ -121,7 +132,25 @@
         });
         return {rep};
       }
+      
+      
 
+      const radioButtons = document.querySelectorAll('input[name="category"]');
+      radioButtons.forEach(radioButton => {
+        radioButton.addEventListener("change", () => {
+          cur_cat = radioButton.value;
+          cur_color = colors[cur_cat-1]
+          console.log(`category selected ${cur_cat} (${cur_color})`);
+          // const color = categoryColors[category];
+          // circles.forEach(circle => {
+          //   if (circle.category === category) {
+          //     circle.color = color;
+          //   }
+          // });
+          // redraw();
+        });
+      });
+      
     </script>
     <!-- <ul>
         {% for d in data %}

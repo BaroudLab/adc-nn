@@ -10,7 +10,8 @@ from .io import (
     delete_feature,
     bf_fluo_2rgb,
     to8bits,
-    get_centers
+    get_centers,
+    get_all_features
 )
 
 logger = logging.getLogger(__name__)
@@ -147,11 +148,8 @@ def get_chip(chip_id):
     )
     if _features:
         features = [
-            {
-                "table_id": table_id,
-                "droplet_id": droplet_id,
-                "feature": feature_id
-            } for table_id, droplet_id, feature_id in _features
+            {"table_id": table_id, "droplet_id": droplet_id, "feature_id": feature_id}
+            for table_id, droplet_id, feature_id in _features
         ]
     else:
         features = []
@@ -205,7 +203,7 @@ def get_chip(chip_id):
             "imgData": {
                 "name": "bf_fluo",
                 "type": "data:image/jpeg;base64,",
-                "value": encode_base64(rgb)
+                "value": encode_base64(rgb),
             },
             "meta": {
                 "name": "meta",
@@ -222,6 +220,7 @@ def get_chip(chip_id):
                 "next_chip": next_url,
                 "prev_chip": prev_url,
                 "back_url": f"/ab_type/{ab_type}",
+                "all_features": get_all_features()
             },
         },
     )
@@ -239,11 +238,16 @@ def post():
 
 @app.route("/droplet/feature/remove", methods=["POST"])
 def remove():
+    """
+    Removes the feature from the database
+    """
     if request.method == "POST":
         print(request.json)
         chip_id = request.json["chip_id"]
         droplet_id = request.json["droplet_id"]
-        status, err = delete_feature(table="droplets", chip_id=chip_id, droplet_id=droplet_id)
+        status, err = delete_feature(
+            table="droplets", chip_id=chip_id, droplet_id=droplet_id
+        )
         print(request.json)
         if status == "OK":
             return make_response("OK", f"deleted {droplet_id}")

@@ -17,6 +17,7 @@ def readdb(query, unique=True):
         return [v[0] for v in values]
     return values
 
+
 def delete_feature(table, chip_id, droplet_id):
     print("delete feature", table, chip_id, droplet_id)
     try:
@@ -31,7 +32,7 @@ def delete_feature(table, chip_id, droplet_id):
         return "OK", None
     except sqlite3.OperationalError as e:
         return "error", e
-    
+
 
 def postdb(table, **kwargs):
     try:
@@ -57,6 +58,25 @@ def postdb(table, **kwargs):
         return "OK", None
     except sqlite3.OperationalError as e:
         return "error", e
+
+def get_all_features():
+
+    _features = readdb(
+        """SELECT
+            id,
+            name
+            FROM features;
+        """,
+        unique=False,
+    )
+    if _features:
+        features = [
+            {"id": id, "name": name}
+            for id, name in _features
+        ]
+    else:
+        features = []
+    return features
 
 
 def get_centers(binning=2):
