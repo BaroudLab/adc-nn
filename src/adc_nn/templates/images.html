@@ -26,8 +26,8 @@
         
         .button {
           display: inline-block;
-          margin: 10px;
-          padding: 10px;
+          margin: 2px;
+          padding: 2px;
           background-color: rgba(255, 255, 255, 0.5);
           border: none;
           border-radius: 5px;
@@ -41,18 +41,23 @@
       </style>
 </head>
 <body>
-    <p><a href="{{data.meta.back_url}}">back</a> </p>
-    <div id="image-container">
-        <img id="my-image" src="data:image/jpeg;base64,{{data.imgData.value}}" alt={{data.imgData.name}}></li>
+    <p><a href="/">HOME</a> </p>
+    {% for droplet in data.droplets %}
+      <div id="image-container">
+        <img id="droplet" src="data:image/jpeg;base64,{{droplet.rgb_image}}"></li>
         <div id="button-container" class="button-container">
-            <button id="button1" class="button" data-id="1">Regular</button>
-            <button id="button2" class="button" data-id="2">Rods</button>
-            <button id="button3" class="button" data-id="3">Filaments</button>
+          {% for feature in data.all_features %}
+            <button id="{{feature.id}}" class="button" >{{feature.name}}</button>
+          {% endfor %}
         </div>
-    </div>
+      </div>
+    {% endfor %}
     
-    <p><a href="{{data.meta.url_prev}}">prev</a> | <a href="{{data.meta.url_next}}">next</a></p>
+    
     <script>
+        const jsdata = {{data | tojson}};
+        console.log(jsdata);
+
         const imageContainer = document.getElementById("image-container");
         const buttonContainer = document.getElementById("button-container");
         const buttons = buttonContainer.querySelectorAll(".button");
@@ -67,7 +72,7 @@
         
         buttons.forEach(button => {
           button.addEventListener("click", () => {
-            const id = button.getAttribute("data-id");
+            const id = button.getAttribute("id");
             buttons.forEach(button => {
               button.classList.remove("green");
             });

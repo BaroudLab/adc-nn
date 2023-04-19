@@ -1,12 +1,53 @@
 import numpy as np
+import os
 import io as _io
 from PIL import Image
 import base64
 import sqlite3
+import logging
+import dask.array as da
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 DB_ADDRESS = "database.db"
+DATA_PREFIX = "/home/aaristov/Multicell/"
 
+FLUO_MIN = 400
+FLUO_MAX = 600
+
+def retrieve_random_droplet(chip_id, path, stack_index):
+    droplet_id = np.random.randint(500)
+    rgb = retrieve_droplet(path, stack_index, droplet_id)
+    features = readdb(f"""
+        SELECT feature_id, value
+        FROM droplets
+        WHERE chip_id='{chip_id}' and droplet_id={droplet_id};
+    """, unique=False)
+    return {
+        "chip_id": chip_id,
+        "droplet_id": droplet_id,
+        "features": [
+            {"feature_id": f, "value": v}
+            for f, v in features
+        ],
+        "rgb_image": encode_base64(rgb),
+    }
+
+
+def retrieve_droplet(path, stack_index, droplet_id):
+
+    abs_path = os.path.join(DATA_PREFIX, path)
+    logger.debug(f"abs_path {abs_path}")
+
+    data = da.from_zarr(abs_path)
+    logger.debug(f"retrieved data: {data}")
+
+    bf, fluo = data[int(droplet_id), int(stack_index)].compute()
+    logger.debug(f"bf {bf.shape} fluo {fluo.shape}")
+    rgb = bf_fluo_2rgb(bf=to8bits(bf), fluo=to8bits(fluo, imin=FLUO_MIN, imax=FLUO_MAX))
+    return rgb
 
 def readdb(query, unique=True):
     with sqlite3.connect(DB_ADDRESS) as conn:

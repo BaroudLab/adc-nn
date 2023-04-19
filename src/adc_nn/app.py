@@ -11,17 +11,15 @@ from .io import (
     bf_fluo_2rgb,
     to8bits,
     get_centers,
-    get_all_features
+    get_all_features,
+    retrieve_random_droplet,
+    DATA_PREFIX
 )
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 app = Flask(__name__)
-
-DATA_PREFIX = "/home/aaristov/Multicell/"
-FLUO_MIN = 400
-FLUO_MAX = 600
 
 
 @app.route("/")
@@ -69,7 +67,7 @@ def get_data(antibiotic_type):
 
 
 @app.route("/droplet/<chip_id>/<droplet_id>")
-def get_images(chip_id, droplet_id):
+def get_droplet(chip_id, droplet_id):
     path, stack_index, ab_type, ab_conc, ab_unit = readdb(
         f"""SELECT  
             datasets.path, 
@@ -95,16 +93,20 @@ def get_images(chip_id, droplet_id):
 
     bf, fluo = data[int(droplet_id), int(stack_index)].compute()
     logger.debug(f"bf {bf.shape} fluo {fluo.shape}")
+    rgb = bf_fluo_2rgb(bf=to8bits(bf), fluo=to8bits(fluo, imin=FLUO_MIN, imax=FLUO_MAX))
 
     return render_template(
         "image.html",
-        data=[
-            {"name": "bf", "data": encode_base64(bf)},
-            {
+        data={
+            "imgData": {
+                "name": "bf_fluo",
+                "type": "data:image/jpeg;base64,",
+                "value": encode_base64(rgb),
+            },
+            "meta": {
                 "name": "fluo",
-                "data": encode_base64(fluo, min=(mi := 400), max=(ma := 600)),
-                "min": mi,
-                "max": ma,
+                "min": FLUO_MIN,
+                "max": FLUO_MAX,
                 "ab_type": ab_type,
                 "ab_conc": ab_conc,
                 "ab_unit": ab_unit,
@@ -112,7 +114,32 @@ def get_images(chip_id, droplet_id):
                 "url_prev": f"/droplet/{chip_id}/{int(droplet_id)-1}",
                 "back_url": f"/ab_type/{ab_type}",
             },
-        ],
+        },
+    )
+
+@app.route("/droplets/<quantity>")
+def get_droplets(quantity):
+    chips = readdb(
+        """SELECT  chips.id, datasets.path, chips.stack_index
+        FROM datasets
+        JOIN chips
+        ON chips.dataset_id = datasets.id;
+        """,
+        unique=False,
+    )
+    n_chips = len(chips)
+    logger.debug(f"retrieved {n_chips} chips")
+
+    droplets = [
+        retrieve_random_droplet(*chip) 
+        for chip in (chips[np.random.randint(n_chips)] for _ in range(int(quantity)))
+    ]
+
+    return render_template(
+        "images.html",
+        data={"droplets":droplets,
+            "all_features": get_all_features()
+        }
     )
 
 
