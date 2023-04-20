@@ -1,86 +1,132 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Droplet view</title>
+  <head>
+    <meta charset="UTF-8">
+    <title>Flexbox Image Gallery</title>
+    <script src="{{ url_for('static', filename='io.js') }}"></script>
     <style>
-        #image-container {
-          position: relative;
-          display: inline-block;
-        }
-        
-        #image-container:hover img {
+      .gal {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+      }
+      
+      .image-container {
+        position: relative;
+        margin: 20px;
+        width: 300px;
+        height: 300px;
+        overflow: hidden;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      }
+      
+      .image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      
+      .button-container {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: none;
+      }
+      
+      .image-container:hover img {
           filter: brightness(0.5);
         }
-        
-        .button-container {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          display: none;
-        }
-        
-        .button-container.show {
-          display: block;
-        }
-        
-        .button {
-          display: inline-block;
-          margin: 2px;
-          padding: 2px;
-          background-color: rgba(255, 255, 255, 0.5);
-          border: none;
-          border-radius: 5px;
-          font-size: 16px;
-          cursor: pointer;
-        }
-        
-        .button.green {
+
+      .image-container:hover .button-container {
+        display: block;
+      }
+      
+      .button {
+        display: inline-block;
+        margin: 5px;
+        padding: 5px;
+        background-color: rgba(255, 255, 255, 0.5);
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+
+      .button.green {
             background-color: rgb(43, 255, 43);
         }
-      </style>
-</head>
-<body>
-    <p><a href="/">HOME</a> </p>
-    {% for droplet in data.droplets %}
-      <div id="image-container">
-        <img id="droplet" src="data:image/jpeg;base64,{{droplet.rgb_image}}"></li>
-        <div id="button-container" class="button-container">
-          {% for feature in data.all_features %}
-            <button id="{{feature.id}}" class="button" >{{feature.name}}</button>
-          {% endfor %}
-        </div>
-      </div>
-    {% endfor %}
+    </style>
+  </head>
+  <body>
+    <div><p><a href="/">HOME</a> </p> <hr/></div>
     
-    
+    <div id="gallery" class="gal">
+      <p id="placeholder">Loading...</p></div>
+
+
     <script>
         const jsdata = {{data | tojson}};
-        console.log(jsdata);
 
-        const imageContainer = document.getElementById("image-container");
-        const buttonContainer = document.getElementById("button-container");
-        const buttons = buttonContainer.querySelectorAll(".button");
+     
+      
+        gallery = document.getElementById("gallery");
+
+      jsdata.droplets.forEach((droplet, dropletIndex) => {
+        console.log(droplet.features);
+
+        const imageContainer = document.createElement("div");
+        imageContainer.className = "image-container";
         
-        imageContainer.addEventListener("mouseenter", () => {
-          buttonContainer.classList.add("show");
-        });
+        const img = document.createElement("img");
+        img.src = `data:image/jpeg;base64,` + droplet.rgb_image;
         
-        imageContainer.addEventListener("mouseleave", () => {
-          buttonContainer.classList.remove("show");
-        });
+        const buttonContainer = document.createElement("div");
+        buttonContainer.className = "button-container";
         
-        buttons.forEach(button => {
-          button.addEventListener("click", () => {
-            const id = button.getAttribute("id");
-            buttons.forEach(button => {
-              button.classList.remove("green");
-            });
-            button.classList.add("green");
-            // Call callback function with the id parameter
-            // callback(id);
-          });
-        });
-      </script>
-</body>
+        buttons = jsdata.all_features.forEach((feature) => {
+            const button = document.createElement("button");
+            button.className = "button";
+            button.id = feature.id;
+            button.active = false;
+            button.textContent = feature.name;
+            button.addEventListener("click", () => {
+              console.log(`Droplet ${dropletIndex}, button ${feature.id} clicked`);
+                if (!button.active) {
+                    console.log(`Saving feature to database: chip_id: ${feature.chip_id}, droplet_id: ${feature.droplet_id}, feature_id: ${feature.id}`);
+                    button.classList.add("green");
+                    button.active = true;
+                    post(1,droplet.chip_id,droplet.droplet_id, feature.id, 1).then(console.log).catch(console.log);
+                } else {
+                    console.log(`Removing feature from database: chip_id: ${feature.chip_id}, droplet_id: ${feature.droplet_id}, feature_id: ${feature.id}`);
+                    button.classList.remove("green");
+                    button.active = false;
+                    remove(droplet.chip_id,droplet.droplet_id).then(console.log).catch(console.log);
+                }
+                });
+            buttonContainer.appendChild(button);
+            return button;
+        })
+
+
+        droplet.features.forEach(({id, value}) => {
+            buttons[id].classList.add("green");
+            buttons[id].active = true;
+        })
+        
+        imageContainer.appendChild(img);
+        imageContainer.appendChild(buttonContainer);
+        
+        gallery.appendChild(imageContainer);
+      });
+      gallery.removeChild(document.getElementById("placeholder"));
+      
+
+    </script>
+  </body>
 </html>

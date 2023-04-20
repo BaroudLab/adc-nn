@@ -33,7 +33,7 @@ CREATE TABLE features (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name CHAR NOT NULL,
   user_id INT NOT NULL,
-  date CURRENT_DATE,
+  time_ns INTEGER,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 

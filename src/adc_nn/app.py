@@ -13,7 +13,9 @@ from .io import (
     get_centers,
     get_all_features,
     retrieve_random_droplet,
-    DATA_PREFIX
+    DATA_PREFIX,
+    FLUO_MAX,
+    FLUO_MIN
 )
 
 logger = logging.getLogger(__name__)
