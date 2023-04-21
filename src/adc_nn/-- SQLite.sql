@@ -13,20 +13,25 @@
 SELECT * FROM droplets ORDER BY id DESC LIMIT 10;
 
 -- INSERT INTO features (name, user_id, date) VALUES ("bad alignment", 1, CURRENT_DATE);
--- INSERT INTO features (name, user_id, date) VALUES ("planktonic", 1, CURRENT_DATE);
+-- INSERT INTO features (id, name, user_id, date) VALUES (8, "planktonic", 1, CURRENT_DATE);
 
 SELECT * from features;
--- DELETE FROM features WHERE name="planktonic";
+-- DELETE FROM features WHERE id="13";
 -- SELECT * from features;
 
+UPDATE droplets 
+SET feature_id=8 
+WHERE feature_id=13;
 
-SELECT features.id, features.name, COUNT(droplets.feature_id) 
+
+SELECT features.id, features.name as feature, COUNT(droplets.feature_id) as count 
 FROM features 
 JOIN droplets 
 ON features.id = droplets.feature_id 
 GROUP BY features.id;
 
-
+SELECT DISTINCT droplets.chip_id, chips.stack_index, datasets.path from droplets join chips on chips.id= droplets.chip_id join datasets on datasets.id=chips.dataset_id where feature_id=7;
+SELECT DISTINCT droplets.chip_id, chips.stack_index, datasets.path from droplets join chips on chips.id= droplets.chip_id join datasets on datasets.id=chips.dataset_id where feature_id=13;
 
 -- SELECT  chips.concentration, datasets.unit, datasets.path
 -- FROM datasets 

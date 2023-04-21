@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Base64 Image Example</title>
+  <title>ADC: Chip viewer</title>
   <script src="{{ url_for('static', filename='io.js') }}"></script>
 
 </head>
@@ -36,12 +36,11 @@
       const circles = meta.centers;
       const chip_id = meta.chip_id;
       const features = meta.features;
-      const colors = ["orange", "brown", " green", "blue", "red", "black"]
       console.log(features);
 
-      circles.map(circle => circle.cat = -1 )
+      circles.map(circle => circle.cat = [] )
       features.map(({table_id, droplet_id, feature_id}) => {
-        circles[droplet_id - 1].cat=feature_id;
+        circles[droplet_id - 1].push(feature_id);
         circles[droplet_id - 1].table_id=table_id;
       });
 
@@ -59,14 +58,14 @@
             else {
               circles.forEach(circle => {
                   if (isPointInsideCircle(x, y, circle)) {
-                    if (circle.cat < 0 ) {
-                      circle.cat = cur_cat;
+                    if (!circle.cat.includes(cur_cat)) {
+                      circle.cat.push(cur_cat);
                       console.log(`Add ${circle.id} cat ${cur_cat}`);
                       redraw();
                       post(1,chip_id,circle.id, cur_cat, 1).then(console.log).catch(console.log)
                     }else{
-                      circle.cat = -1;
-                      console.log(`Remove ${circle.id}`);
+                      circle.cat.pop(cur_cat);
+                      console.log(`Remove ${cur_cat} from ${circle.id}`);
                       redraw();
                       remove(chip_id,circle.id).then(console.log).catch(console.log)
                     }
