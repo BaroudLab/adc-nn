@@ -18,12 +18,13 @@ async function post(userId, chipId, dropletId, featureId, value){
   return {rep};
 };
 
-async function remove(chip_id, droplet_id){
+async function remove(chip_id, droplet_id, feature_id){
   rep = await fetch("/droplet/feature/remove", {
       method: "POST",
       body: JSON.stringify({
         chip_id: chip_id,
-        droplet_id: droplet_id
+        droplet_id: droplet_id,
+        feature_id: feature_id
       }),
       headers: {
           "Content-type": "application/json; charset=UTF-8"

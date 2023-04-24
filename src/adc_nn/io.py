@@ -59,15 +59,15 @@ def readdb(query, unique=True):
     return values
 
 
-def delete_feature(table, chip_id, droplet_id):
-    print("delete feature", table, chip_id, droplet_id)
+def delete_feature(table, chip_id, droplet_id, feature_id):
+    print("delete feature", table, chip_id, droplet_id, feature_id)
     try:
         with sqlite3.connect(DB_ADDRESS) as conn:
             cursor = conn.cursor()
             query = f"""
             DELETE FROM {table}
             WHERE 
-            chip_id='{chip_id}' AND droplet_id={droplet_id}
+            chip_id='{chip_id}' AND droplet_id={droplet_id} AND feature_id={feature_id}
             """
             cursor.execute(query)
         return "OK", None

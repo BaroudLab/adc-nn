@@ -41,7 +41,7 @@
         radio.name = "feature";
         radio.value = feature.id;
         radio.addEventListener("change", () => {
-          cur_cat = radio.value;
+          cur_cat = Number(radio.value);
           cur_color = colors[cur_cat-1]
           console.log(`category selected ${cur_cat} (${cur_color})`);
         });
@@ -86,15 +86,16 @@
               circles.forEach(circle => {
                   if (isPointInsideCircle(x, y, circle)) {
                     if (!circle.cat.includes(cur_cat)) {
+                      console.log(`circle cats: ${circle.cat} do not include ${cur_cat}`)
                       circle.cat.push(cur_cat);
-                      console.log(`Add ${circle.id} cat ${cur_cat}`);
+                      console.log(`Add to circle id ${circle.id} cat ${cur_cat}`);
                       redraw();
                       post(1,chip_id,circle.id, cur_cat, 1).then(console.log).catch(console.log)
                     }else{
                       circle.cat.pop(cur_cat);
                       console.log(`Remove ${cur_cat} from ${circle.id}`);
                       redraw();
-                      remove(chip_id,circle.id).then(console.log).catch(console.log)
+                      remove(chip_id,circle.id, cur_cat).then(console.log).catch(console.log)
                     }
                   } 
                 });
@@ -148,15 +149,15 @@
           context.lineWidth = 2;
           context.stroke();
         } else {
-          console.log(`circle id ${circle.id} cat len ${n}`);
+          // console.log(`circle id ${circle.id} cat len ${n}`);
           let step = 2 * Math.PI / n;
           for (let i = 0; i < n; i++) {
             context.beginPath();
-            context.arc(circle.x - 2*i, circle.y, circle.size / 2, i * step, (i+1) * step);
+            context.arc(circle.x, circle.y, circle.size / 2, i * step, (i+1) * step);
             context.strokeStyle = colors[circle.cat[i]-1];
             context.lineWidth = 2;
             context.stroke();
-            console.log(`start angle ${i * step}, end angle ${(i+1) * step}, color ${context.strokeStyle}`);
+            // console.log(`start angle ${i * step}, end angle ${(i+1) * step}, color ${context.strokeStyle}`);
 
             
           }
