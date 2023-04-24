@@ -3,6 +3,7 @@ import numpy as np
 import os
 import logging
 import dask.array as da
+from . import io
 from .io import (
     encode_base64,
     readdb,
@@ -13,6 +14,7 @@ from .io import (
     get_centers,
     get_all_features,
     retrieve_random_droplet,
+    retrieve_droplet,
     DATA_PREFIX,
     FLUO_MAX,
     FLUO_MIN
@@ -96,25 +98,47 @@ def get_droplet(chip_id, droplet_id):
 
 @app.route("/droplets/<quantity>")
 def get_droplets(quantity):
-    chips = readdb(
-        """SELECT  chips.id, datasets.path, chips.stack_index
-        FROM datasets
-        JOIN chips
-        ON chips.dataset_id = datasets.id;
-        """,
-        unique=False,
-    )
+    chips = [{"chip_id": id, "path": path, "stack_index": s} 
+             for id, path, s in readdb(
+                """SELECT  chips.id, datasets.path, chips.stack_index
+                FROM datasets
+                JOIN chips
+                ON chips.dataset_id = datasets.id;
+                """,
+                unique=False,
+            )
+    ]
     n_chips = len(chips)
     logger.debug(f"retrieved {n_chips} chips")
 
+    selected = [
+        {**chips[np.random.randint(n_chips)], "droplet_id": np.random.randint(500)} 
+        for _ in range(int(quantity))
+    ]
+
+    droplets_dask = da.stack([
+        retrieve_droplet(**chip, return_dask=True) 
+        for chip in selected
+    ])
+    
+    droplets_np = droplets_dask.compute()
     droplets = [
-        retrieve_random_droplet(*chip) 
-        for chip in (chips[np.random.randint(n_chips)] for _ in range(int(quantity)))
+        {
+            "rgb_image": io.encode_base64(io.to_rgb(bf_fluo)),
+            "features": readdb(
+                f"""
+                    SELECT feature_id, value
+                    FROM droplets
+                    WHERE chip_id='{sel["chip_id"]}' and droplet_id={sel["droplet_id"]};
+                """, unique=False
+            ),
+            **sel} 
+                for sel, bf_fluo in zip(selected, droplets_np) 
     ]
 
     return render_template(
         "images.html",
-        data={"droplets":droplets,
+        data={"droplets": droplets,
             "all_features": get_all_features()
         }
     )
