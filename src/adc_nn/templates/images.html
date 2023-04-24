@@ -98,7 +98,7 @@
             button.addEventListener("click", () => {
               console.log(`Droplet ${dropletIndex}, button ${feature.id} clicked`);
                 if (!button.active) {
-                    console.log(`Saving feature to database: chip_id: ${feature.chip_id}, droplet_id: ${feature.droplet_id}, feature_id: ${feature.id}`);
+                    console.log(`Saving feature to database: chip_id: ${droplet.chip_id}, droplet_id: ${droplet.droplet_id}, feature_id: ${feature.id}`);
                     button.classList.add("green");
                     button.active = true;
                     post(1,droplet.chip_id,droplet.droplet_id, feature.id, 1).then(console.log).catch(console.log);

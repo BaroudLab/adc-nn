@@ -274,8 +274,9 @@ def remove():
         print(request.json)
         chip_id = request.json["chip_id"]
         droplet_id = request.json["droplet_id"]
+        feature_id = request.json["feature_id"]
         status, err = delete_feature(
-            table="droplets", chip_id=chip_id, droplet_id=droplet_id
+            table="droplets", chip_id=chip_id, droplet_id=droplet_id, feature_id=feature_id
         )
         print(request.json)
         if status == "OK":
