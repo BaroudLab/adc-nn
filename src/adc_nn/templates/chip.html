@@ -78,8 +78,9 @@
         
         // Add click event listener to the canvas
         canvas.addEventListener("click", (event) => {
-            const x = event.clientX - canvas.offsetLeft;
-            const y = event.clientY - canvas.offsetTop;
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
             if (cur_cat < 0) alert("select category first!");
             else {
               circles.forEach(circle => {
@@ -139,20 +140,24 @@
         }
       }
       function drawCircle(circle) {
-        context.beginPath();
         let n = circle.cat.length;
         if (n == 0) {
+          context.beginPath();
           context.arc(circle.x, circle.y, circle.size / 2, 0, 2 * Math.PI);
           context.strokeStyle = DEFAULT_CIRCLE_COLOR;
           context.lineWidth = 2;
           context.stroke();
         } else {
+          console.log(`circle id ${circle.id} cat len ${n}`);
           let step = 2 * Math.PI / n;
           for (let i = 0; i < n; i++) {
-            context.arc(circle.x, circle.y, circle.size / 2, i * step, step);
-            context.strokeStyle = colors[circle.cat[i]];
+            context.beginPath();
+            context.arc(circle.x - 2*i, circle.y, circle.size / 2, i * step, (i+1) * step);
+            context.strokeStyle = colors[circle.cat[i]-1];
             context.lineWidth = 2;
             context.stroke();
+            console.log(`start angle ${i * step}, end angle ${(i+1) * step}, color ${context.strokeStyle}`);
+
             
           }
         }
