@@ -3,17 +3,18 @@
 <head>
   <title>ADC: Chip viewer</title>
   <script src="{{ url_for('static', filename='io.js') }}"></script>
-
+  <style>
+     label span {
+        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+      }
+      
+  </style>
 </head>
 <body>
     <p><a href="{{data.meta.back_url}}">back</a> </p>
     <h3>{{data.meta.ab_type}}: {{data.meta.ab_conc}} {{data.meta.ab_unit}} (#{{data.meta.stack_index}})</h3>
     <p>{{data.meta.path}}</p>
-    <div>
-      {% for feature in data.meta.all_features %}
-        <label><input type="radio" name="category" value={{feature.id}} >{{feature.name}}</label>
-      {% endfor %}
-    </div>
+    <div id="feature-buttons">   </div>
     <p><a href="{{data.meta.prev_chip}}">prev</a> | <a href="{{data.meta.next_chip}}">next</a></p>
     <canvas id="myCanvas"></canvas>
     <script>
@@ -24,8 +25,33 @@
       const jsdata = {{data | tojson}};
       console.log(jsdata);
       const {imgData: img, meta} = jsdata;
+      let all_features = meta.all_features;
+      let tooltip = null;
       console.log(img);
       console.log(meta);
+
+      let featureButtons = document.getElementById("feature-buttons");
+
+      for (let i = 0; i < all_features.length; i++) {
+        const feature = all_features[i];
+        const color = colors[i];
+        const label = document.createElement("label");
+        const radio = document.createElement("input");
+        radio.type = "radio";
+        radio.name = "feature";
+        radio.value = feature.id;
+        radio.addEventListener("change", () => {
+          cur_cat = radio.value;
+          cur_color = colors[cur_cat-1]
+          console.log(`category selected ${cur_cat} (${cur_color})`);
+        });
+        label.appendChild(radio);
+        const span = document.createElement("span");
+        span.textContent = feature.name;
+        span.style.color = color;
+        label.appendChild(span);
+        featureButtons.appendChild(label);
+      }
 
       const canvas = document.getElementById("myCanvas");
       const context = canvas.getContext("2d");
@@ -40,7 +66,7 @@
 
       circles.map(circle => circle.cat = [] )
       features.map(({table_id, droplet_id, feature_id}) => {
-        circles[droplet_id - 1].push(feature_id);
+        circles[droplet_id - 1].cat.push(feature_id);
         circles[droplet_id - 1].table_id=table_id;
       });
 
@@ -73,13 +99,63 @@
                 });
             }
         });
+      
+        // Add move event listener to the canvas
+        canvas.addEventListener("mousemove", (event) => {
+            hideTooltip();
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            let circle = null;
+            
+            for (let i = 0; i < circles.length; i++) {
+                if (isPointInsideCircle(x, y, circles[i])) {
+                  circle=circles[i];
+                  showTooltip(event.pageX, event.pageY, `id: ${circle.id}, cat: ${circle.cat}`);
+                  break;
+                } else {
+                  hideTooltip();
+                }
+              };
+        });
       };
+
+      function showTooltip(x, y, text) {
+        tooltip = document.createElement("div");
+        tooltip.textContent = text;
+        tooltip.style.position = "absolute";
+        tooltip.style.top = `${y + 10}px`;
+        tooltip.style.left = `${x + 10}px`;
+        tooltip.style.backgroundColor = "white";
+        tooltip.style.border = "1px solid black";
+        tooltip.style.padding = "5px";
+        document.body.appendChild(tooltip);
+      }
+      
+      function hideTooltip() {
+        if (tooltip) {
+          document.body.removeChild(tooltip);
+          tooltip = null;
+        }
+      }
       function drawCircle(circle) {
         context.beginPath();
-        context.arc(circle.x, circle.y, circle.size / 2, 0, 2 * Math.PI);
-        context.strokeStyle = circle.cat > 0 ? colors[circle.cat - 1] : DEFAULT_CIRCLE_COLOR;
-        context.lineWidth = 2;
-        context.stroke();
+        let n = circle.cat.length;
+        if (n == 0) {
+          context.arc(circle.x, circle.y, circle.size / 2, 0, 2 * Math.PI);
+          context.strokeStyle = DEFAULT_CIRCLE_COLOR;
+          context.lineWidth = 2;
+          context.stroke();
+        } else {
+          let step = 2 * Math.PI / n;
+          for (let i = 0; i < n; i++) {
+            context.arc(circle.x, circle.y, circle.size / 2, i * step, step);
+            context.strokeStyle = colors[circle.cat[i]];
+            context.lineWidth = 2;
+            context.stroke();
+            
+          }
+        }
       }
       
       function isPointInsideCircle(x, y, circle) {
