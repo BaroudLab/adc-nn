@@ -17,8 +17,8 @@ DATA_PREFIX = "/home/aaristov/Multicell/"
 FLUO_MIN = 400
 FLUO_MAX = 600
 
-def retrieve_random_droplet(chip_id, path, stack_index):
-    droplet_id = np.random.randint(500)
+def retrieve_random_droplet(chip_id, path, stack_index, droplet_id=np.random.randint(500)):
+    
     rgb = retrieve_droplet(path, stack_index, droplet_id)
     features = readdb(f"""
         SELECT feature_id, value

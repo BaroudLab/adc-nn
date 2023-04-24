@@ -70,54 +70,29 @@ def get_data(antibiotic_type):
 
 @app.route("/droplet/<chip_id>/<droplet_id>")
 def get_droplet(chip_id, droplet_id):
-    path, stack_index, ab_type, ab_conc, ab_unit = readdb(
-        f"""SELECT  
-            datasets.path, 
-            chips.stack_index,
-            datasets.antibiotic_type,
-            chips.concentration,
-            datasets.unit
-            FROM datasets 
-            JOIN chips 
-            ON chips.dataset_id = datasets.id
-            WHERE 
-            chips.id='{chip_id}'
-            ;""",
-        unique=False,
+    path, stack_index = readdb(
+        f"""SELECT  datasets.path, chips.stack_index
+        FROM datasets
+        JOIN chips
+        ON chips.dataset_id = datasets.id
+        WHERE chips.id='{chip_id}';
+        """,
+        unique=False
     )[0]
-    logger.debug(f"retrieved path: {path}, chip_id: {chip_id}")
-
-    abs_path = os.path.join(DATA_PREFIX, path)
-    logger.debug(f"abs_path {abs_path}")
-
-    data = da.from_zarr(abs_path)
-    logger.debug(f"retrieved data: {data}")
-
-    bf, fluo = data[int(droplet_id), int(stack_index)].compute()
-    logger.debug(f"bf {bf.shape} fluo {fluo.shape}")
-    rgb = bf_fluo_2rgb(bf=to8bits(bf), fluo=to8bits(fluo, imin=FLUO_MIN, imax=FLUO_MAX))
-
+    droplet = retrieve_random_droplet(
+        chip_id=chip_id,
+        path=path,
+        stack_index=stack_index,
+        droplet_id=droplet_id
+    ) 
+    
     return render_template(
-        "image.html",
-        data={
-            "imgData": {
-                "name": "bf_fluo",
-                "type": "data:image/jpeg;base64,",
-                "value": encode_base64(rgb),
-            },
-            "meta": {
-                "name": "fluo",
-                "min": FLUO_MIN,
-                "max": FLUO_MAX,
-                "ab_type": ab_type,
-                "ab_conc": ab_conc,
-                "ab_unit": ab_unit,
-                "url_next": f"/droplet/{chip_id}/{int(droplet_id)+1}",
-                "url_prev": f"/droplet/{chip_id}/{int(droplet_id)-1}",
-                "back_url": f"/ab_type/{ab_type}",
-            },
-        },
+        "images.html",
+        data={"droplets":[droplet],
+            "all_features": get_all_features()
+        }
     )
+
 
 @app.route("/droplets/<quantity>")
 def get_droplets(quantity):
@@ -221,7 +196,7 @@ def get_chip(chip_id):
     data = da.from_zarr(os.path.join(abs_path, str(np.log2(binning).astype("int"))))
     print(f"retrieved data: {data}")
 
-    subsampling = 2
+    subsampling = 1
     bf, fluo = data[int(stack_index), :2, ::subsampling, ::subsampling].compute()
     logger.debug(f"bf {bf.shape} fluo {fluo.shape}")
 

@@ -72,13 +72,13 @@
 
     <script>
         const jsdata = {{data | tojson}};
-
+        console.log(jsdata);
      
       
         gallery = document.getElementById("gallery");
 
       jsdata.droplets.forEach((droplet, dropletIndex) => {
-        console.log(droplet.features);
+        console.log(`droplet features: ${droplet.features}`);
 
         const imageContainer = document.createElement("div");
         imageContainer.className = "image-container";
@@ -89,7 +89,8 @@
         const buttonContainer = document.createElement("div");
         buttonContainer.className = "button-container";
         
-        buttons = jsdata.all_features.forEach((feature) => {
+        let buttons = jsdata.all_features.forEach((feature) => {
+            console.log(feature);
             const button = document.createElement("button");
             button.className = "button";
             button.id = feature.id;
@@ -103,20 +104,17 @@
                     button.active = true;
                     post(1,droplet.chip_id,droplet.droplet_id, feature.id, 1).then(console.log).catch(console.log);
                 } else {
-                    console.log(`Removing feature from database: chip_id: ${feature.chip_id}, droplet_id: ${feature.droplet_id}, feature_id: ${feature.id}`);
+                    console.log(`Removing feature from database: chip_id: ${droplet.chip_id}, droplet_id: ${feature.droplet_id}, feature_id: ${feature.id}`);
                     button.classList.remove("green");
                     button.active = false;
                     remove(droplet.chip_id,droplet.droplet_id).then(console.log).catch(console.log);
                 }
                 });
+            if(droplet.features.some((obj) => obj.feature_id === feature.id)){
+              button.classList.add("green");
+              button.active = true;
+            }
             buttonContainer.appendChild(button);
-            return button;
-        })
-
-
-        droplet.features.forEach(({id, value}) => {
-            buttons[id].classList.add("green");
-            buttons[id].active = true;
         })
         
         imageContainer.appendChild(img);
