@@ -36,7 +36,7 @@ def retrieve_random_droplet(chip_id, path, stack_index, droplet_id=np.random.ran
     }
 
 
-def retrieve_droplet(path, stack_index, droplet_id):
+def retrieve_droplet(path, stack_index, droplet_id, return_dask=False, **kwargs):
 
     abs_path = os.path.join(DATA_PREFIX, path)
     logger.debug(f"abs_path {abs_path}")
@@ -44,7 +44,13 @@ def retrieve_droplet(path, stack_index, droplet_id):
     data = da.from_zarr(abs_path)
     logger.debug(f"retrieved data: {data}")
 
-    bf, fluo = data[int(droplet_id), int(stack_index)].compute()
+    bf_fluo = data[int(droplet_id), int(stack_index)]
+    if return_dask:
+        return bf_fluo
+    return to_rgb(bf_fluo.compute())
+
+def to_rgb(bf_fluo):
+    bf, fluo = bf_fluo
     logger.debug(f"bf {bf.shape} fluo {fluo.shape}")
     rgb = bf_fluo_2rgb(bf=to8bits(bf), fluo=to8bits(fluo, imin=FLUO_MIN, imax=FLUO_MAX))
     return rgb
