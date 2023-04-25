@@ -14,11 +14,21 @@ logger.setLevel(logging.DEBUG)
 DB_ADDRESS = "database.db"
 DATA_PREFIX = "/home/aaristov/Multicell/"
 
-FLUO_MIN = 400
+FLUO_MIN = 380
 FLUO_MAX = 600
 
-def retrieve_random_droplet(chip_id, path, stack_index, droplet_id=np.random.randint(500)):
-    
+def retrieve_random_droplet(chip_id, droplet_id=np.random.randint(500) + 1):
+    out = readdb(f"""
+            SELECT 
+            datasets.path, 
+            chips.stack_index 
+            FROM chips
+            JOIN datasets
+            ON datasets.id=chips.dataset_id
+            WHERE chips.id='{chip_id}';
+        """, unique=False)[0]
+    print(out)
+    path, stack_index = out
     rgb = retrieve_droplet(path, stack_index, droplet_id)
     features = readdb(f"""
         SELECT feature_id, value
@@ -44,7 +54,9 @@ def retrieve_droplet(path, stack_index, droplet_id, return_dask=False, **kwargs)
     data = da.from_zarr(abs_path)
     logger.debug(f"retrieved data: {data}")
 
-    bf_fluo = data[int(droplet_id), int(stack_index)]
+    assert (ddd := int(droplet_id) - 1) >= 0,\
+          f"droplet_id should be between 1 and 500, got {droplet_id}"
+    bf_fluo = data[ddd, int(stack_index)]
     if return_dask:
         return bf_fluo
     return to_rgb(bf_fluo.compute())

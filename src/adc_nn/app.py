@@ -4,6 +4,7 @@ import os
 import logging
 import dask.array as da
 from . import io
+from . import training as tr
 from .io import (
     encode_base64,
     readdb,
@@ -72,25 +73,14 @@ def get_data(antibiotic_type):
 
 @app.route("/droplet/<chip_id>/<droplet_id>")
 def get_droplet(chip_id, droplet_id):
-    path, stack_index = readdb(
-        f"""SELECT  datasets.path, chips.stack_index
-        FROM datasets
-        JOIN chips
-        ON chips.dataset_id = datasets.id
-        WHERE chips.id='{chip_id}';
-        """,
-        unique=False
-    )[0]
     droplet = retrieve_random_droplet(
         chip_id=chip_id,
-        path=path,
-        stack_index=stack_index,
         droplet_id=droplet_id
     ) 
     
     return render_template(
         "images.html",
-        data={"droplets":[droplet],
+        data={"droplets": [droplet],
             "all_features": get_all_features()
         }
     )
@@ -142,6 +132,33 @@ def get_droplets(quantity):
             "all_features": get_all_features()
         }
     )
+
+
+# @app.route("/verify/<quantity>")
+# def check_droplets(quantity):
+#     features = tr.get_unique_records()
+#     droplets = tr.get_vectors(features=features)
+
+#     droplets = [
+#         {
+#             "rgb_image": io.encode_base64(io.to_rgb(bf_fluo)),
+#             "features": readdb(
+#                 f"""
+#                     SELECT feature_id, value
+#                     FROM droplets
+#                     WHERE chip_id='{sel["chip_id"]}' and droplet_id={sel["droplet_id"]};
+#                 """, unique=False
+#             ),
+#             **sel} 
+#                 for sel, bf_fluo in zip(selected, droplets_np) 
+#     ]
+
+#     return render_template(
+#         "images.html",
+#         data={"droplets": droplets,
+#             "all_features": get_all_features()
+#         }
+#     )
 
 
 @app.route("/chip/<chip_id>")

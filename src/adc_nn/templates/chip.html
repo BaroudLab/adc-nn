@@ -66,8 +66,13 @@
 
       circles.map(circle => circle.cat = [] )
       features.map(({table_id, droplet_id, feature_id}) => {
-        circles[droplet_id - 1].cat.push(feature_id);
-        circles[droplet_id - 1].table_id=table_id;
+        try {
+          circles[droplet_id - 1].cat.push(feature_id);
+          circles[droplet_id - 1].table_id=table_id;
+          
+        } catch (TypeError) {
+          console.log(`droplet_id ${droplet_id} not found`)
+        }
       });
 
       image.onload = () => {
@@ -113,7 +118,7 @@
             for (let i = 0; i < circles.length; i++) {
                 if (isPointInsideCircle(x, y, circles[i])) {
                   circle=circles[i];
-                  showTooltip(event.pageX, event.pageY, `id: ${circle.id}, cat: ${circle.cat}`);
+                  showTooltip(event.pageX, event.pageY, `id: ${circle.id} : ${circle.cat.map(cat => all_features[cat-1].name)}`);
                   break;
                 } else {
                   hideTooltip();
