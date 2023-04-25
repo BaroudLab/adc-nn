@@ -47,7 +47,7 @@ def retrieve_droplet(path, stack_index, droplet_id, return_dask=False, **kwargs)
     bf_fluo = data[int(droplet_id), int(stack_index)]
     if return_dask:
         return bf_fluo
-    return to_rgb(bf_fluo)
+    return to_rgb(bf_fluo.compute())
 
 def to_rgb(bf_fluo):
     bf, fluo = bf_fluo
