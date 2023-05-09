@@ -3,9 +3,8 @@ import numpy as np
 import os
 import logging
 import dask.array as da
-from . import io
-from . import training as tr
-from .io import (
+from .tools import io
+from .tools.io import (
     encode_base64,
     readdb,
     postdb,
