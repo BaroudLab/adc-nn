@@ -1,4 +1,4 @@
-from .. import io
+from ..tools import io
 from pytest import fixture
 import numpy as np
 
