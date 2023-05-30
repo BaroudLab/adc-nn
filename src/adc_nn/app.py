@@ -19,6 +19,7 @@ from .tools.io import (
     FLUO_MAX,
     FLUO_MIN
 )
+import subprocess
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -227,6 +228,9 @@ def get_chip(chip_id):
         prev_url = f"/ab_type/{ab_type}"
 
     chip_path = path.replace(".crops.zarr", ".zarr")
+    if not os.path.exists(chip_path):
+         subprocess.run(['sshfs', "merlin.pub.pasteur.fr:Multicell", "/home/aaristov/Multicell/"])
+
     logger.debug(f"retrieved path: {chip_path}, stack_index: {stack_index}")
 
     abs_path = os.path.join(DATA_PREFIX, chip_path)
