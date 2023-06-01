@@ -15,10 +15,15 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 </head>
 <body>
+    <p><a href="/">Home</a> </p>
+    <p>Move the panels to change order</p>
     <div id="sortable">
         <!-- more panels as needed -->
         {% for feature in data.features %}
-            <div class="panel" data-id="{{feature.id}}">{{ feature.name }}</div>
+            <div class="panel" data-id="{{feature.id}}">
+                {{ feature.name }}
+                <input type="color" id="{{feature.id}}" name="color{{feature.name}}" value="{{feature.color}}">
+            </div>
         {% endfor %}
     </div>
 
@@ -37,6 +42,28 @@
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({ order: sortedIDs }),
+                dataType: 'json',
+                success: function(response) {
+                    console.log(response)
+                }
+            });
+        }
+
+        // Listen for color changes
+        $('input[type="color"]').on('change', function() {
+            var color = $(this).val();
+            var panelId = $(this).parent().data('id');
+            updateColor(panelId, color);
+        });
+
+        function updateColor(panelId, color) {
+            console.log($(`updating panel ${panelId} with color ${color}`))
+            // AJAX call to the server with the new color
+            $.ajax({
+                url: '/update_color',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ feature_id: panelId, color: color }),
                 dataType: 'json',
                 success: function(response) {
                     // handle response from the server

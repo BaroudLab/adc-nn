@@ -42,14 +42,15 @@ def sort_features():
         """SELECT
         id,
         name,
-        'order'
+        'order',
+        color
         FROM features
         ORDER BY "order"
         ;""",
         unique=False,
     )
-    data = {"features": [{"id": i, "name": n, "order": o} 
-                         for i, n, o in values]}
+    data = {"features": [{"id": i, "name": n, "order": o, "color": c} 
+                         for i, n, o, c in values]}
     return render_template("sort_features.html", data=data)
 
 @app.route('/update_order', methods=['POST'])
@@ -66,6 +67,20 @@ def update_order():
                 ;""")
     return 'OK'
 
+
+@app.route('/update_color', methods=['POST'])
+def update_color():
+    feature_id = request.json.get('feature_id')
+    color = request.json.get('color')
+    if feature_id and color:
+        readdb(
+            f"""
+            UPDATE  features 
+            SET color="{color}"
+            WHERE id={feature_id}
+            ;"""
+        )
+    return 'OK'
 
 @app.route("/ab_type/<antibiotic_type>")
 def get_data(antibiotic_type):

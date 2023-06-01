@@ -26,7 +26,9 @@
       console.log(jsdata);
       const {imgData: img, meta} = jsdata;
       let all_features = meta.all_features;
+      let all_features_by_id = [...all_features].sort((a, b) => a.id > b.id)
       let tooltip = null;
+      let colors = all_features.map(f => f.color)
       console.log(img);
       console.log(meta);
 
@@ -34,7 +36,7 @@
 
       for (let i = 0; i < all_features.length; i++) {
         const feature = all_features[i];
-        const color = colors[i];
+        const color = feature.color;
         const label = document.createElement("label");
         const radio = document.createElement("input");
         radio.type = "radio";
@@ -118,7 +120,10 @@
             for (let i = 0; i < circles.length; i++) {
                 if (isPointInsideCircle(x, y, circles[i])) {
                   circle=circles[i];
-                  showTooltip(event.pageX, event.pageY, `id: ${circle.id} : ${circle.cat.map(cat => all_features[cat-1].name)}`);
+                  showTooltip(
+                    event.pageX, 
+                    event.pageY, 
+                    `id: ${circle.id} : ${circle.cat.map(cat => all_features.find(x => x.id === cat).name)}`);
                   break;
                 } else {
                   hideTooltip();
@@ -159,7 +164,7 @@
           for (let i = 0; i < n; i++) {
             context.beginPath();
             context.arc(circle.x, circle.y, circle.size / 2, i * step, (i+1) * step);
-            context.strokeStyle = colors[circle.cat[i]-1];
+            context.strokeStyle = all_features_by_id[circle.cat[i]-1].color;
             context.lineWidth = 2;
             context.stroke();
             // console.log(`start angle ${i * step}, end angle ${(i+1) * step}, color ${context.strokeStyle}`);
