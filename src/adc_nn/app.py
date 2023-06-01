@@ -36,6 +36,36 @@ def droplet_id():
         unique_antibiotic_types=unique_antibiotic_types,
     )
 
+@app.route('/sort_features')
+def sort_features():
+    values = readdb(
+        """SELECT
+        id,
+        name,
+        'order'
+        FROM features
+        ORDER BY "order"
+        ;""",
+        unique=False,
+    )
+    data = {"features": [{"id": i, "name": n, "order": o} 
+                         for i, n, o in values]}
+    return render_template("sort_features.html", data=data)
+
+@app.route('/update_order', methods=['POST'])
+def update_order():
+    order = request.json.get('order')
+    if order:
+        for sort_order, feature_id in enumerate(order):
+            print(feature_id, sort_order)
+            readdb(
+                f"""
+                UPDATE  features 
+                SET "order"={sort_order} 
+                WHERE id={feature_id}
+                ;""")
+    return 'OK'
+
 
 @app.route("/ab_type/<antibiotic_type>")
 def get_data(antibiotic_type):
@@ -119,7 +149,8 @@ def get_droplets(quantity):
                 f"""
                     SELECT feature_id, value
                     FROM droplets
-                    WHERE chip_id='{sel["chip_id"]}' and droplet_id={sel["droplet_id"]};
+                    WHERE chip_id='{sel["chip_id"]}' and droplet_id={sel["droplet_id"]}
+                    ORDER BY "order";
                 """, unique=False
             ),
             **sel} 
@@ -188,6 +219,7 @@ def get_chip(chip_id):
         FROM droplets
         WHERE
         chip_id='{chip_id}'
+        ORDER BY "order"
         ;""",
         unique=False,
     )

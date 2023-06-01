@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sortable Panels</title>
+    <style>
+        .panel {
+            border: 1px solid #ddd;
+            margin: 10px;
+            padding: 10px;
+            width: fit-content;
+        }
+    </style>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+</head>
+<body>
+    <div id="sortable">
+        <!-- more panels as needed -->
+        {% for feature in data.features %}
+            <div class="panel" data-id="{{feature.id}}">{{ feature.name }}</div>
+        {% endfor %}
+    </div>
+
+    <script>
+        $("#sortable").sortable({
+            update: function(event, ui) {
+                var sortedIDs = $("#sortable").sortable("toArray", { attribute: 'data-id' });
+                updateDatabase(sortedIDs);
+            }
+        });
+    
+        function updateDatabase(sortedIDs) {
+            // AJAX call to the server with the new order
+            $.ajax({
+                url: '/update_order',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ order: sortedIDs }),
+                dataType: 'json',
+                success: function(response) {
+                    // handle response from the server
+                }
+            });
+        }
+    </script>
+    
+</body>
+</html>
