@@ -150,7 +150,7 @@ def get_droplets(quantity):
                     SELECT feature_id, value
                     FROM droplets
                     WHERE chip_id='{sel["chip_id"]}' and droplet_id={sel["droplet_id"]}
-                    ORDER BY "order";
+                    ;
                 """, unique=False
             ),
             **sel} 
