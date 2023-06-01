@@ -122,7 +122,8 @@ def get_all_features():
     _features = readdb(
         """SELECT
             id,
-            name
+            name,
+            color
             FROM features
             ORDER BY "order";
         """,
@@ -130,8 +131,8 @@ def get_all_features():
     )
     if _features:
         features = [
-            {"id": id, "name": name}
-            for id, name in _features
+            {"id": id, "name": name, "color": color}
+            for id, name, color in _features
         ]
     else:
         features = []
