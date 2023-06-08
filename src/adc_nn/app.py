@@ -39,11 +39,30 @@ def droplet_id():
 @app.route("/api/getfeatures", methods=["GET","POST"])
 def get_features():
     if request.method == "GET":
-        data = request.body.json
+        data = request.args.get('path')
         print(data)
+        res = readdb(
+            f"""
+            SELECT chips.stack_index, droplets.feature_id, features.name, droplets.droplet_id
+            FROM datasets
+            JOIN chips
+            ON chips.dataset_id = datasets.id
+            JOIN droplets
+            ON droplets.chip_id = chips.id
+            JOIN features
+            ON features.id = droplets.feature_id
+            WHERE path
+            LIKE "{data}%";
+            """,
+            unique=False
+        )
+        
+        return {"features": [{"stack":s, "feature_id": fi, "feature_name": fn, "droplet_id": d} for s,fi,fn,d in res],
+                "all_features": get_all_features()
     else:
-        data = request.body.json
+        data = request.args.get('path')
         print(data)
+        return data
 
 @app.route("/ab_type/<antibiotic_type>")
 def get_data(antibiotic_type):
