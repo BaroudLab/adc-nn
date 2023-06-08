@@ -1,5 +1,5 @@
 
-const colors = ["orange", "brown", " green", "blue", "red", "black", "magenta", "yellow", " #82e0aa"]
+const colors = ["orange", "brown", " green", "blue", "red", "black", "magenta", "yellow", " #82e0aa", "#aed6f1"]
 
 async function post(userId, chipId, dropletId, featureId, value){
   rep = await fetch("/droplet/feature/save", {
