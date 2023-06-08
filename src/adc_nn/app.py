@@ -36,6 +36,14 @@ def droplet_id():
         unique_antibiotic_types=unique_antibiotic_types,
     )
 
+@app.route("/api/getfeatures", methods=["GET","POST"])
+def get_features():
+    if request.method == "GET":
+        data = request.body.json
+        print(data)
+    else:
+        data = request.body.json
+        print(data)
 
 @app.route("/ab_type/<antibiotic_type>")
 def get_data(antibiotic_type):
