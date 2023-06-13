@@ -7,16 +7,59 @@
      label span {
         text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
       }
+
+      #feature-buttons {
+            margin-top: 200px;
+            position: fixed;
+            display: flex;
+            width: fit-content;
+            height: fit-content;
+            flex-direction: column;
+            justify-content: right;
+            z-index: 2;
+            background-color: #ffffff60;
+        }
+        #imageView {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+        #imageView canvas {
+            max-width: 100%;
+            max-height: 100%;
+            position: relative;
+            cursor: move;
+        }
+
+        #viewer {
+          /* margin-left: 150px; */
+        }
+        main {
+          /* display: inline-block; */
+        }
       
   </style>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://unpkg.com/jquery.panzoom/dist/jquery.panzoom.min.js"></script>
+
 </head>
 <body>
-    <p><a href="{{data.meta.back_url}}">back</a> </p>
-    <h3>{{data.meta.ab_type}}: {{data.meta.ab_conc}} {{data.meta.ab_unit}} (#{{data.meta.stack_index}})</h3>
-    <p>{{data.meta.path}}</p>
-    <div id="feature-buttons">   </div>
-    <p><a href="{{data.meta.prev_chip}}">prev</a> | <a href="{{data.meta.next_chip}}">next</a></p>
-    <canvas id="myCanvas"></canvas>
+    <header>
+      <p><a href="{{data.meta.back_url}}">back</a> </p>
+      <h3>{{data.meta.ab_type}}: {{data.meta.ab_conc}} {{data.meta.ab_unit}} (#{{data.meta.stack_index}})</h3>
+      <p>{{data.meta.path}}</p>
+      
+
+    </header>
+    <main>
+      <div id="feature-buttons">
+        <p><a href="{{data.meta.prev_chip}}">prev</a> | <a href="{{data.meta.next_chip}}">next</a></p>
+      </div>
+      <div id="viewer">
+      <canvas id="myCanvas"></canvas>
+      </div>
+    </main>
     <script>
       // console.log({data});
       const DEFAULT_CIRCLE_COLOR = "#ffffff60";
@@ -26,7 +69,9 @@
       console.log(jsdata);
       const {imgData: img, meta} = jsdata;
       let all_features = meta.all_features;
+      let all_features_by_id = [...all_features].sort((a, b) => a.id > b.id)
       let tooltip = null;
+      let colors = all_features.map(f => f.color)
       console.log(img);
       console.log(meta);
 
@@ -34,7 +79,7 @@
 
       for (let i = 0; i < all_features.length; i++) {
         const feature = all_features[i];
-        const color = colors[i];
+        const color = feature.color;
         const label = document.createElement("label");
         const radio = document.createElement("input");
         radio.type = "radio";
@@ -86,7 +131,7 @@
             const rect = canvas.getBoundingClientRect();
             const x = event.clientX - rect.left;
             const y = event.clientY - rect.top;
-            if (cur_cat < 0) alert("select category first!");
+            if (cur_cat < 0) console.log("select category first!");
             else {
               circles.forEach(circle => {
                   if (isPointInsideCircle(x, y, circle)) {
@@ -118,14 +163,38 @@
             for (let i = 0; i < circles.length; i++) {
                 if (isPointInsideCircle(x, y, circles[i])) {
                   circle=circles[i];
-                  showTooltip(event.pageX, event.pageY, `id: ${circle.id} : ${circle.cat.map(cat => all_features[cat-1].name)}`);
+                  showTooltip(
+                    event.pageX, 
+                    event.pageY, 
+                    `id: ${circle.id} : ${circle.cat.map(cat => all_features.find(x => x.id === cat).name)}`);
                   break;
                 } else {
                   hideTooltip();
                 }
               };
         });
+
+        var $panzoom = $(canvas).panzoom({
+            startTransform: 'scale(1)',
+            increment: 0.1,
+            minScale: 0.5,
+            contain: 'automatic'
+        });
+
+        $(canvas).on('wheel', function(e) {
+                e.preventDefault();
+                var delta = e.originalEvent.deltaY;
+                if (delta > 0) {
+                    // Scroll up: zoom out
+                    $panzoom.panzoom('zoom', true);
+                } else {
+                    // Scroll down: zoom in
+                    $panzoom.panzoom('zoom', false);
+                }
+            });
+
       };
+
 
       function showTooltip(x, y, text) {
         tooltip = document.createElement("div");
@@ -159,7 +228,7 @@
           for (let i = 0; i < n; i++) {
             context.beginPath();
             context.arc(circle.x, circle.y, circle.size / 2, i * step, (i+1) * step);
-            context.strokeStyle = colors[circle.cat[i]-1];
+            context.strokeStyle = all_features_by_id[circle.cat[i]-1].color;
             context.lineWidth = 2;
             context.stroke();
             // console.log(`start angle ${i * step}, end angle ${(i+1) * step}, color ${context.strokeStyle}`);
@@ -218,3 +287,4 @@
     
 </body>
 </html>
+

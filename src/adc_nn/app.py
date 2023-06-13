@@ -36,6 +36,10 @@ def droplet_id():
         unique_antibiotic_types=unique_antibiotic_types,
     )
 
+@app.route("/api/getallfeatures", methods=["GET"])
+def get_all_features_api():
+    return {"all_features": get_all_features()}
+
 @app.route("/api/getfeatures", methods=["GET","POST"])
 def get_features():
     if request.method == "GET":
@@ -57,12 +61,60 @@ def get_features():
             unique=False
         )
         
-        return {"features": [{"stack":s, "feature_id": fi, "feature_name": fn, "droplet_id": d} for s,fi,fn,d in res],
-                "all_features": get_all_features()
+        return {"features": [{"stack":s, "feature_id": fi, "feature_name": fn, "droplet_id": d} for s,fi,fn,d in res]}
     else:
         data = request.args.get('path')
         print(data)
         return data
+
+
+
+@app.route('/sort_features')
+def sort_features():
+    values = readdb(
+        """SELECT
+        id,
+        name,
+        'order',
+        color
+        FROM features
+        ORDER BY "order"
+        ;""",
+        unique=False,
+    )
+    data = {"features": [{"id": i, "name": n, "order": o, "color": c} 
+                         for i, n, o, c in values]}
+    return render_template("sort_features.html", data=data)
+
+@app.route('/update_order', methods=['POST'])
+def update_order():
+    order = request.json.get('order')
+    if order:
+        for sort_order, feature_id in enumerate(order):
+            print(feature_id, sort_order)
+            readdb(
+                f"""
+                UPDATE  features 
+                SET "order"={sort_order} 
+                WHERE id={feature_id}
+                ;""")
+    return 'OK'
+
+
+@app.route('/update_color', methods=['POST'])
+def update_color():
+    feature_id = request.json.get('feature_id')
+    color = request.json.get('color')
+    if feature_id and color:
+        readdb(
+            f"""
+            UPDATE  features 
+            SET color="{color}"
+            WHERE id={feature_id}
+            ;"""
+        )
+    return 'OK'
+
 
 @app.route("/ab_type/<antibiotic_type>")
 def get_data(antibiotic_type):
@@ -146,7 +198,9 @@ def get_droplets(quantity):
                 f"""
                     SELECT feature_id, value
                     FROM droplets
-                    WHERE chip_id='{sel["chip_id"]}' and droplet_id={sel["droplet_id"]};
+                    WHERE chip_id='{sel["chip_id"]}' and droplet_id={sel["droplet_id"]}
+                    ORDER BY "order";
+
                 """, unique=False
             ),
             **sel} 
@@ -215,6 +269,7 @@ def get_chip(chip_id):
         FROM droplets
         WHERE
         chip_id='{chip_id}'
+        ORDER BY "order"
         ;""",
         unique=False,
     )

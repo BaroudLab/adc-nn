@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sortable Panels</title>
+    <style>
+        .panel {
+            border: 1px solid #ddd;
+            margin: 10px;
+            padding: 10px;
+            width: fit-content;
+        }
+    </style>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+</head>
+<body>
+    <p><a href="/">Home</a> </p>
+    <p>Move the panels to change order</p>
+    <div id="sortable">
+        <!-- more panels as needed -->
+        {% for feature in data.features %}
+            <div class="panel" data-id="{{feature.id}}">
+                {{ feature.name }}
+                <input type="color" id="{{feature.id}}" name="color{{feature.name}}" value="{{feature.color}}">
+            </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        $("#sortable").sortable({
+            update: function(event, ui) {
+                var sortedIDs = $("#sortable").sortable("toArray", { attribute: 'data-id' });
+                updateDatabase(sortedIDs);
+            }
+        });
+    
+        function updateDatabase(sortedIDs) {
+            // AJAX call to the server with the new order
+            $.ajax({
+                url: '/update_order',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ order: sortedIDs }),
+                dataType: 'json',
+                success: function(response) {
+                    console.log(response)
+                }
+            });
+        }
+
+        // Listen for color changes
+        $('input[type="color"]').on('change', function() {
+            var color = $(this).val();
+            var panelId = $(this).parent().data('id');
+            updateColor(panelId, color);
+        });
+
+        function updateColor(panelId, color) {
+            console.log($(`updating panel ${panelId} with color ${color}`))
+            // AJAX call to the server with the new color
+            $.ajax({
+                url: '/update_color',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ feature_id: panelId, color: color }),
+                dataType: 'json',
+                success: function(response) {
+                    // handle response from the server
+                }
+            });
+        }
+    </script>
+    
+</body>
+</html>
