@@ -9,17 +9,15 @@
       }
 
       #feature-buttons {
+            margin-top: 200px;
             position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
             display: flex;
             width: fit-content;
+            height: fit-content;
             flex-direction: column;
             justify-content: right;
             z-index: 2;
-            background-color: antiquewhite;
+            background-color: #ffffff60;
         }
         #imageView {
             width: 100%;
@@ -33,6 +31,13 @@
             position: relative;
             cursor: move;
         }
+
+        #viewer {
+          /* margin-left: 150px; */
+        }
+        main {
+          /* display: inline-block; */
+        }
       
   </style>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -40,12 +45,21 @@
 
 </head>
 <body>
-    <p><a href="{{data.meta.back_url}}">back</a> </p>
-    <h3>{{data.meta.ab_type}}: {{data.meta.ab_conc}} {{data.meta.ab_unit}} (#{{data.meta.stack_index}})</h3>
-    <p>{{data.meta.path}}</p>
-    <div id="feature-buttons">   </div>
-    <p><a href="{{data.meta.prev_chip}}">prev</a> | <a href="{{data.meta.next_chip}}">next</a></p>
-    <canvas id="myCanvas"></canvas>
+    <header>
+      <p><a href="{{data.meta.back_url}}">back</a> </p>
+      <h3>{{data.meta.ab_type}}: {{data.meta.ab_conc}} {{data.meta.ab_unit}} (#{{data.meta.stack_index}})</h3>
+      <p>{{data.meta.path}}</p>
+      
+
+    </header>
+    <main>
+      <div id="feature-buttons">
+        <p><a href="{{data.meta.prev_chip}}">prev</a> | <a href="{{data.meta.next_chip}}">next</a></p>
+      </div>
+      <div id="viewer">
+      <canvas id="myCanvas"></canvas>
+      </div>
+    </main>
     <script>
       // console.log({data});
       const DEFAULT_CIRCLE_COLOR = "#ffffff60";
