@@ -28,7 +28,6 @@ def retrieve_random_droplet(chip_id, droplet_id=np.random.randint(500) + 1):
             ON datasets.id=chips.dataset_id
             WHERE chips.id='{chip_id}';
         """, unique=False)[0]
-    print(out)
     path, stack_index = out
     rgb = retrieve_droplet(path, stack_index, droplet_id)
     features = readdb(f"""
