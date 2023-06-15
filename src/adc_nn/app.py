@@ -126,7 +126,28 @@ def get_data(antibiotic_type):
             "date": d,
             "antibiotic_type": antibiotic_type,
             "concentrations": [
-                {"value": v, "unit": u, "stack_index": i, "path": p, "chip_id": c}
+                {
+                    "value": v, 
+                    "unit": u, 
+                    "stack_index": i, 
+                    "path": p, 
+                    "chip_id": c,
+                    "features": {
+                        name: count
+                        for name, count in readdb(
+                            f"""
+                            SELECT features.name, COUNT(droplets.feature_id) 
+                            FROM features 
+                            JOIN droplets 
+                            ON features.id = droplets.feature_id 
+                            WHERE droplets.chip_id="{c}"
+                            GROUP BY features.id
+                            ORDER BY features."order";
+                            """,
+                            unique=False
+                        )
+                    }
+                }
                 for v, u, p, i, c in readdb(
                     f"""SELECT  
             chips.concentration, 
