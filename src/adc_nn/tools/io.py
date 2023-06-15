@@ -6,6 +6,7 @@ import base64
 import sqlite3
 import logging
 import dask.array as da
+import subprocess
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -49,6 +50,9 @@ def retrieve_droplet(path, stack_index, droplet_id, return_dask=False, **kwargs)
 
     abs_path = os.path.join(DATA_PREFIX, path)
     logger.debug(f"abs_path {abs_path}")
+    if not os.path.exists(abs_path):
+         subprocess.run(['sshfs', "merlin.pub.pasteur.fr:Multicell", "/home/aaristov/Multicell/"])
+
 
     data = da.from_zarr(abs_path)
     logger.debug(f"retrieved data: {data}")
@@ -117,6 +121,8 @@ def postdb(table, **kwargs):
     except sqlite3.OperationalError as e:
         return "error", e
 
+    return features
+
 def get_all_features():
 
     _features = readdb(
@@ -137,6 +143,8 @@ def get_all_features():
     else:
         features = []
     return features
+
+
 
 
 def get_centers(binning=2):

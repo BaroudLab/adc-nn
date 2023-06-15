@@ -36,6 +36,39 @@ def droplet_id():
         unique_antibiotic_types=unique_antibiotic_types,
     )
 
+@app.route("/api/getallfeatures", methods=["GET"])
+def get_all_features_api():
+    return {"all_features": get_all_features()}
+
+@app.route("/api/getfeatures", methods=["GET","POST"])
+def get_features():
+    if request.method == "GET":
+        data = request.args.get('path')
+        print(data)
+        res = readdb(
+            f"""
+            SELECT chips.stack_index, droplets.feature_id, features.name, droplets.droplet_id
+            FROM datasets
+            JOIN chips
+            ON chips.dataset_id = datasets.id
+            JOIN droplets
+            ON droplets.chip_id = chips.id
+            JOIN features
+            ON features.id = droplets.feature_id
+            WHERE path
+            LIKE "{data}%";
+            """,
+            unique=False
+        )
+        
+        return {"features": [{"stack":s, "feature_id": fi, "feature_name": fn, "droplet_id": d} for s,fi,fn,d in res]}
+    else:
+        data = request.args.get('path')
+        print(data)
+        return data
+
+
+
 @app.route('/sort_features')
 def sort_features():
     values = readdb(
@@ -81,6 +114,7 @@ def update_color():
             ;"""
         )
     return 'OK'
+
 
 @app.route("/ab_type/<antibiotic_type>")
 def get_data(antibiotic_type):
@@ -165,7 +199,7 @@ def get_droplets(quantity):
                     SELECT feature_id, value
                     FROM droplets
                     WHERE chip_id='{sel["chip_id"]}' and droplet_id={sel["droplet_id"]}
-                    ;
+                    ORDER BY "order";
                 """, unique=False
             ),
             **sel} 
