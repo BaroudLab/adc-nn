@@ -213,34 +213,6 @@ def get_droplets(quantity):
         }
     )
 
-
-# @app.route("/verify/<quantity>")
-# def check_droplets(quantity):
-#     features = tr.get_unique_records()
-#     droplets = tr.get_vectors(features=features)
-
-#     droplets = [
-#         {
-#             "rgb_image": io.encode_base64(io.to_rgb(bf_fluo)),
-#             "features": readdb(
-#                 f"""
-#                     SELECT feature_id, value
-#                     FROM droplets
-#                     WHERE chip_id='{sel["chip_id"]}' and droplet_id={sel["droplet_id"]};
-#                 """, unique=False
-#             ),
-#             **sel} 
-#                 for sel, bf_fluo in zip(selected, droplets_np) 
-#     ]
-
-#     return render_template(
-#         "images.html",
-#         data={"droplets": droplets,
-#             "all_features": get_all_features()
-#         }
-#     )
-
-
 @app.route("/chip/<chip_id>")
 def get_chip(chip_id):
     dataset_id, path, stack_index, ab_conc, ab_type, ab_unit = readdb(
