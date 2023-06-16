@@ -14,8 +14,8 @@
             <ul>
                 {% for c in d.concentrations %}
                 <li>{{c.value}} {{c.unit}} --- <a href="/droplet/{{c.chip_id}}/1 ">droplets</a> | <a href="/chip/{{c.chip_id}} ">chip</a> 
-                {% for f, count in c.features.items()%}
-                    <span> {{f}}: {{count}} </span>
+                Features: {% for f, count in c.features.items()%}
+                    <span> {{count}} {{f}}, </span>
                 {% endfor %}
 
                 </li>
