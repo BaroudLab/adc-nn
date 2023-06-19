@@ -100,7 +100,8 @@
 
       const canvas = document.getElementById("myCanvas");
       const context = canvas.getContext("2d");
-      
+      var currentZoomLevel = 1;
+
       const image = new Image();
       image.src = `data:image/jpeg;base64,${img.value}`;
       
@@ -129,8 +130,8 @@
         // Add click event listener to the canvas
         canvas.addEventListener("click", (event) => {
             const rect = canvas.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
+            const x = (event.clientX - rect.left) / currentZoomLevel;
+            const y = (event.clientY - rect.top) / currentZoomLevel;
             if (cur_cat < 0) console.log("select category first!");
             else {
               circles.forEach(circle => {
@@ -156,8 +157,8 @@
         canvas.addEventListener("mousemove", (event) => {
             hideTooltip();
             const rect = canvas.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
+            const x = (event.clientX - rect.left) / currentZoomLevel;
+            const y = (event.clientY - rect.top) / currentZoomLevel;
             let circle = null;
             
             for (let i = 0; i < circles.length; i++) {
@@ -191,7 +192,10 @@
                     // Scroll down: zoom in
                     $panzoom.panzoom('zoom', false);
                 }
+              currentZoomLevel = $panzoom.panzoom("getMatrix")[0];
+
             });
+
 
       };
 
