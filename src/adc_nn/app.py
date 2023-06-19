@@ -126,7 +126,28 @@ def get_data(antibiotic_type):
             "date": d,
             "antibiotic_type": antibiotic_type,
             "concentrations": [
-                {"value": v, "unit": u, "stack_index": i, "path": p, "chip_id": c}
+                {
+                    "value": v, 
+                    "unit": u, 
+                    "stack_index": i, 
+                    "path": p, 
+                    "chip_id": c,
+                    "features": {
+                        name: count
+                        for name, count in readdb(
+                            f"""
+                            SELECT features.name, COUNT(droplets.feature_id) 
+                            FROM features 
+                            JOIN droplets 
+                            ON features.id = droplets.feature_id 
+                            WHERE droplets.chip_id="{c}"
+                            GROUP BY features.id
+                            ORDER BY features."order";
+                            """,
+                            unique=False
+                        )
+                    }
+                }
                 for v, u, p, i, c in readdb(
                     f"""SELECT  
             chips.concentration, 
@@ -212,34 +233,6 @@ def get_droplets(quantity):
             "all_features": get_all_features()
         }
     )
-
-
-# @app.route("/verify/<quantity>")
-# def check_droplets(quantity):
-#     features = tr.get_unique_records()
-#     droplets = tr.get_vectors(features=features)
-
-#     droplets = [
-#         {
-#             "rgb_image": io.encode_base64(io.to_rgb(bf_fluo)),
-#             "features": readdb(
-#                 f"""
-#                     SELECT feature_id, value
-#                     FROM droplets
-#                     WHERE chip_id='{sel["chip_id"]}' and droplet_id={sel["droplet_id"]};
-#                 """, unique=False
-#             ),
-#             **sel} 
-#                 for sel, bf_fluo in zip(selected, droplets_np) 
-#     ]
-
-#     return render_template(
-#         "images.html",
-#         data={"droplets": droplets,
-#             "all_features": get_all_features()
-#         }
-#     )
-
 
 @app.route("/chip/<chip_id>")
 def get_chip(chip_id):
