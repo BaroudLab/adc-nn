@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, make_response
+from flask import Flask, render_template, request, make_response, send_from_directory
 import numpy as np
 import os
 import logging
@@ -35,6 +35,21 @@ def droplet_id():
         "index.html",
         unique_antibiotic_types=unique_antibiotic_types,
     )
+
+@app.route("/yeast/<path:path>")
+def get_yeast_png(path):
+    return send_from_directory(
+        "/home/aaristov/Multicell/Madison/2023-03-31_wtCas9/good_pos/pos/", 
+        path
+    )
+    
+@app.route("/yeast/all")
+def get_yeast_all_png(path):
+    return send_from_directory(
+        "/home/aaristov/Multicell/Madison/2023-03-31_wtCas9/good_pos/pos/", 
+        path
+    )
+    
 
 @app.route("/api/getallfeatures", methods=["GET"])
 def get_all_features_api():
@@ -303,7 +318,14 @@ def get_chip(chip_id):
 
     chip_path = path.replace(".crops.zarr", ".zarr")
     if not os.path.exists(chip_path):
-         subprocess.run(['sshfs', "merlin.pub.pasteur.fr:Multicell", "/home/aaristov/Multicell/"])
+        out = subprocess.run(
+            [
+                'sshfs', 
+                "merlin.pub.pasteur.fr:Multicell", 
+                "/home/aaristov/Multicell/"
+            ], capture_output=True
+        )
+        logger.debug(f"connecting to merlin: {out}")
 
     logger.debug(f"retrieved path: {chip_path}, stack_index: {stack_index}")
 
